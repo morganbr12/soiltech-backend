@@ -3,6 +3,7 @@ package com.soiltech.backend.infrastructure.persistence.entity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 import java.util.UUID
+import java.util.UUID.randomUUID
 
 @Entity
 @Table(
@@ -14,7 +15,8 @@ import java.util.UUID
 )
 class RefreshTokenJpaEntity(
     @Id
-    val id: UUID? = null,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID = randomUUID(),
 
     @Column(nullable = false)
     val userId: UUID,
