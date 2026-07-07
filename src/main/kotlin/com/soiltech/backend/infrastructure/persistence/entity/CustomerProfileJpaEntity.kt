@@ -30,7 +30,7 @@ class CustomerProfileJpaEntity(
     var profileImageUrl: String? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, columnDefinition = "varchar(20)")
     var accountType: CustomerAccountType = CustomerAccountType.INDIVIDUAL,
 
     @Column(length = 255)
