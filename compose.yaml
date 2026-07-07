@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: soiltech
+      POSTGRES_USER: soiltech
+      POSTGRES_PASSWORD: soiltech
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soiltech -d soiltech"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: soiltech
+      DB_USERNAME: soiltech
+      DB_PASSWORD: soiltech
+      JWT_SECRET: 404D635166546A576E5A7234753778214125442A472D4B614E645267556B5870
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  postgres_data:

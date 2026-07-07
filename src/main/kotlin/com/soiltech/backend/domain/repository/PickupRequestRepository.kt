@@ -1,0 +1,14 @@
+package com.soiltech.backend.domain.repository
+
+import com.soiltech.backend.domain.entity.PickupRequest
+import com.soiltech.backend.domain.enum.LogisticsStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.util.UUID
+
+interface PickupRequestRepository {
+    fun findById(id: UUID): PickupRequest?
+    fun findAll(agentId: UUID, farmerId: UUID?, status: LogisticsStatus?, pageable: Pageable): Page<PickupRequest>
+    fun save(request: PickupRequest): PickupRequest
+    fun update(request: PickupRequest): PickupRequest
+}

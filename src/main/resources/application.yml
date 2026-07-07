@@ -1,0 +1,64 @@
+spring:
+  application:
+    name: soiltech-backend
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:soiltech}
+    username: ${DB_USERNAME:mac}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        default_batch_fetch_size: 20
+        order_inserts: true
+        order_updates: true
+        jdbc:
+          batch_size: 20
+    show-sql: false
+    open-in-view: false
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /v1
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET:404D635166546A576E5A7234753778214125442A472D4B614E645267556B5870}
+      access-token-expiration: 86400000
+      refresh-token-expiration: 604800000
+  otp:
+    expiry-minutes: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.soiltech.backend: INFO
+    org.springframework.security: WARN
