@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue
 enum class CustomerAccountType(@JsonValue val value: String) {
     INDIVIDUAL("individual"),
     BUSINESS("business"),
-    RETAIL_SHOP("retail_shop");
+    RETAIL_SHOP("retail_shop"),
+    RESTAURANT("restaurant");
 
     companion object {
         @JsonCreator
