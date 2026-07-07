@@ -1,10 +1,12 @@
 package com.soiltech.backend.interfaces.advice
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.soiltech.backend.interfaces.exception.*
 import com.soiltech.backend.interfaces.response.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.AuthenticationException
@@ -63,6 +65,22 @@ class GlobalExceptionHandler {
     fun handleTypeMismatch(ex: MethodArgumentTypeMismatchException): ResponseEntity<ApiResponse<Unit?>> =
         ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiResponse.error("Invalid value '${ex.value}' for parameter '${ex.name}'", 400))
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleNotReadable(ex: HttpMessageNotReadableException): ResponseEntity<ApiResponse<Unit?>> {
+        val cause = ex.cause
+        val message = if (cause is InvalidFormatException && cause.targetType.isEnum) {
+            val field = cause.path.lastOrNull()?.fieldName ?: "field"
+            val valid = cause.targetType.enumConstants.joinToString(", ") {
+                (it as Enum<*>).name.lowercase()
+            }
+            "Invalid value '${cause.value}' for '$field'. Accepted values: $valid"
+        } else {
+            "Malformed request body"
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error(message, 400))
+    }
 
     @ExceptionHandler(Exception::class)
     fun handleGeneric(ex: Exception): ResponseEntity<ApiResponse<Unit?>> {
