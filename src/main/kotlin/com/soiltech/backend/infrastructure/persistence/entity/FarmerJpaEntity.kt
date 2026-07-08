@@ -75,7 +75,10 @@ class FarmerJpaEntity(
     var joinedDate: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false, length = 201)
-    var fullName: String = ""
+    var fullName: String = "",
+
+    @Column(nullable = false, length = 20)
+    var syncStatus: String = "SYNCED"
 
 ) : BaseJpaEntity() {
 

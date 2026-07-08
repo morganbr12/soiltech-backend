@@ -1,10 +1,13 @@
 package com.soiltech.backend.application.usecase.agent
 
 import com.soiltech.backend.application.dto.agent.*
+import com.soiltech.backend.domain.enum.FarmerStatus
 import com.soiltech.backend.domain.repository.*
 import com.soiltech.backend.infrastructure.persistence.jpa.FarmJpaRepository
 import com.soiltech.backend.interfaces.exception.NotFoundException
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -241,6 +244,57 @@ class AgentActivitiesUseCase(
         return activities
             .sortedByDescending { it.timestamp }
             .take(limit.coerceIn(1, 50))
+    }
+}
+
+// ── Agent's farmer list (for produce selection) ───────────────────────────────
+
+@Service
+class GetAgentFarmersUseCase(
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository,
+    private val farmerRepository: FarmerRepository
+) {
+    fun execute(
+        userId: UUID,
+        search: String?,
+        status: String?,
+        page: Int,
+        limit: Int
+    ): Page<AgentFarmerSummaryResponse> {
+        val agentId = resolveAgentId(userId, agentProfileRepository, agentRepository)
+
+        val farmerStatus = status?.uppercase()?.let {
+            runCatching { FarmerStatus.valueOf(it) }.getOrNull()
+        }
+
+        val pageable = PageRequest.of(
+            (page - 1).coerceAtLeast(0),
+            limit.coerceIn(1, 100),
+            Sort.by(Sort.Direction.ASC, "firstName")
+        )
+
+        return farmerRepository.findAll(
+            status = farmerStatus,
+            region = null,
+            lbcId = null,
+            agentId = agentId,
+            kycVerified = null,
+            search = search?.takeIf { it.isNotBlank() },
+            pageable = pageable
+        ).map { farmer ->
+            AgentFarmerSummaryResponse(
+                id = farmer.id,
+                farmerCode = farmer.farmerCode,
+                fullName = "${farmer.firstName} ${farmer.lastName}",
+                phone = farmer.phone,
+                region = farmer.region,
+                district = farmer.district,
+                cropTypes = farmer.cropTypes,
+                status = farmer.status.value,
+                kycVerified = farmer.kycVerified
+            )
+        }
     }
 }
 

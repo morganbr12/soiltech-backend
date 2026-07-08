@@ -45,3 +45,15 @@ data class AgentActivityResponse(
 )
 
 data class NotificationCountResponse(val unreadCount: Long)
+
+data class AgentFarmerSummaryResponse(
+    val id: UUID,
+    val farmerCode: String,
+    val fullName: String,
+    val phone: String,
+    val region: String,
+    val district: String,
+    val cropTypes: List<String>,
+    val status: String,
+    val kycVerified: Boolean
+)
