@@ -1,6 +1,7 @@
 package com.soiltech.backend.domain.repository
 
 import com.soiltech.backend.domain.entity.Farmer
+import com.soiltech.backend.domain.entity.FarmerMetrics
 import com.soiltech.backend.domain.enum.FarmerStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -8,10 +9,23 @@ import java.util.UUID
 
 interface FarmerRepository {
     fun findById(id: UUID): Farmer?
-    fun findByAgentId(agentId: UUID, pageable: Pageable): Page<Farmer>
-    fun findAll(agentId: UUID, status: FarmerStatus?, query: String?, pageable: Pageable): Page<Farmer>
+    fun findAll(
+        status: FarmerStatus?,
+        region: String?,
+        lbcId: UUID?,
+        agentId: UUID?,
+        kycVerified: Boolean?,
+        search: String?,
+        pageable: Pageable
+    ): Page<Farmer>
+    fun countByStatus(): Map<FarmerStatus, Long>
+    fun findMetricsByFarmerIds(ids: List<UUID>): Map<UUID, FarmerMetrics>
     fun save(farmer: Farmer): Farmer
-    fun update(farmer: Farmer): Farmer
     fun delete(id: UUID)
-    fun existsById(id: UUID): Boolean
+    fun existsByPhone(phone: String): Boolean
+    fun existsByPhoneAndIdNot(phone: String, id: UUID): Boolean
+    fun existsByNationalId(nationalId: String): Boolean
+    fun existsByNationalIdAndIdNot(nationalId: String, id: UUID): Boolean
+    fun existsByFarmerCode(code: String): Boolean
+    fun countAll(): Long
 }

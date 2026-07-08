@@ -46,7 +46,7 @@ class AdminRbacSeeder(
             "users:view", "users:create", "users:edit", "users:delete",
             "lbc:view", "lbc:create", "lbc:edit", "lbc:delete", "lbc:suspend",
             "agents:view", "agents:create", "agents:edit", "agents:delete", "agents:transfer", "agents:track",
-            "farmers:view", "farmers:create", "farmers:approve", "farmers:edit",
+            "farmers:view", "farmers:create", "farmers:approve", "farmers:edit", "farmers:delete",
             "farms:view", "farms:create", "farms:edit",
             "produce:view", "produce:manage", "produce:approve",
             "warehouses:view", "warehouses:manage", "warehouses:inventory",

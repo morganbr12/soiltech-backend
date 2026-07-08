@@ -2,7 +2,6 @@ package com.soiltech.backend.application.mapper
 
 import com.soiltech.backend.application.dto.customer.CustomerProfileDto
 import com.soiltech.backend.application.dto.farm.FarmDto
-import com.soiltech.backend.application.dto.farmer.FarmerDto
 import com.soiltech.backend.application.dto.logistics.PickupRequestDto
 import com.soiltech.backend.application.dto.order.CustomerOrderDto
 import com.soiltech.backend.application.dto.order.CustomerOrderListDto
@@ -14,12 +13,6 @@ import com.soiltech.backend.application.dto.product.ProductCategoryDto
 import com.soiltech.backend.application.dto.product.ProductDto
 import com.soiltech.backend.application.dto.product.ProductReviewDto
 import com.soiltech.backend.domain.entity.*
-
-fun Farmer.toDto() = FarmerDto(
-    id = id, agentId = agentId, fullName = fullName, phone = phone,
-    nationalId = nationalId, location = location, status = status,
-    syncStatus = syncStatus, createdAt = createdAt, updatedAt = updatedAt
-)
 
 fun Farm.toDto() = FarmDto(
     id = id, farmerId = farmerId, name = name, sizeHectares = sizeHectares,
