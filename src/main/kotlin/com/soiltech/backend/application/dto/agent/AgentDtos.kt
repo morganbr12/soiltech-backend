@@ -75,7 +75,11 @@ data class RegisterAgentRequest(
     val region: String,
 
     @field:NotBlank(message = "District is required")
-    val district: String
+    val district: String,
+
+    @field:NotBlank(message = "Password is required")
+    @field:Size(min = 8, message = "Password must be at least 8 characters")
+    val password: String
 )
 
 data class UpdateAgentRequest(

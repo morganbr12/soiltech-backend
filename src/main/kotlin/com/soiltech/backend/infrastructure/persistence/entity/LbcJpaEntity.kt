@@ -21,6 +21,9 @@ class LbcJpaEntity(
     @Id
     val id: UUID? = null,
 
+    @Column(unique = true)
+    var userId: UUID? = null,
+
     @Column(nullable = false, length = 255)
     var name: String,
 
@@ -67,6 +70,7 @@ class LbcJpaEntity(
 
     fun toDomain(): Lbc = Lbc(
         id = id!!,
+        userId = userId,
         name = name,
         code = code,
         region = region,
@@ -90,6 +94,7 @@ class LbcJpaEntity(
     companion object {
         fun fromDomain(lbc: Lbc): LbcJpaEntity = LbcJpaEntity(
             id = lbc.id,
+            userId = lbc.userId,
             name = lbc.name,
             code = lbc.code,
             region = lbc.region,

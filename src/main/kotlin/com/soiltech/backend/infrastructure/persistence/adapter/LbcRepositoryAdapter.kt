@@ -55,6 +55,7 @@ class LbcRepositoryAdapter(
         val existing = jpaRepository.findById(lbc.id).orElse(null)
         return if (existing != null) {
             existing.apply {
+                userId = lbc.userId
                 name = lbc.name
                 code = lbc.code
                 region = lbc.region

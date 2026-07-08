@@ -7,6 +7,7 @@ import java.util.UUID
 
 data class Lbc(
     val id: UUID,
+    val userId: UUID?,
     val name: String,
     val code: String,
     val region: String,

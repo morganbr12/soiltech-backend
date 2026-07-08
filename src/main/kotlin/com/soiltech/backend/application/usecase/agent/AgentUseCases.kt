@@ -3,14 +3,19 @@ package com.soiltech.backend.application.usecase.agent
 import com.soiltech.backend.application.dto.agent.*
 import com.soiltech.backend.domain.entity.Agent
 import com.soiltech.backend.domain.entity.AgentMetrics
+import com.soiltech.backend.domain.entity.AgentProfile
+import com.soiltech.backend.domain.entity.User
 import com.soiltech.backend.domain.enum.AgentStatus
+import com.soiltech.backend.domain.enum.UserRole
 import com.soiltech.backend.domain.repository.AgentProfileRepository
 import com.soiltech.backend.domain.repository.AgentRepository
+import com.soiltech.backend.domain.repository.UserRepository
 import com.soiltech.backend.interfaces.exception.ConflictException
 import com.soiltech.backend.interfaces.exception.NotFoundException
 import com.soiltech.backend.interfaces.response.PaginationMeta
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -112,7 +117,12 @@ class GetAgentUseCase(private val agentRepository: AgentRepository) {
 // ── Register (admin) ──────────────────────────────────────────────────────────
 
 @Service
-class RegisterAgentUseCase(private val agentRepository: AgentRepository) {
+class RegisterAgentUseCase(
+    private val agentRepository: AgentRepository,
+    private val agentProfileRepository: AgentProfileRepository,
+    private val userRepository: UserRepository,
+    private val passwordEncoder: PasswordEncoder
+) {
 
     @Transactional
     fun execute(request: RegisterAgentRequest): AgentResponse {
@@ -120,6 +130,38 @@ class RegisterAgentUseCase(private val agentRepository: AgentRepository) {
             throw ConflictException("Agent with email '${request.email}' already exists")
         if (agentRepository.existsByPhone(request.phone))
             throw ConflictException("Agent with phone '${request.phone}' already exists")
+        if (userRepository.existsByEmail(request.email))
+            throw ConflictException("A user account with email '${request.email}' already exists")
+        if (userRepository.existsByPhone(request.phone))
+            throw ConflictException("A user account with phone '${request.phone}' already exists")
+
+        val now = LocalDateTime.now()
+        val agentCode = generateUniqueCode(agentRepository)
+
+        val user = userRepository.save(
+            User(
+                id = UUID.randomUUID(),
+                email = request.email,
+                phone = request.phone,
+                passwordHash = passwordEncoder.encode(request.password),
+                role = UserRole.AGENT,
+                isActive = true,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+
+        agentProfileRepository.save(
+            AgentProfile(
+                id = UUID.randomUUID(),
+                userId = user.id,
+                fullName = "${request.firstName} ${request.lastName}",
+                agentCode = agentCode,
+                region = request.region,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
 
         val agent = agentRepository.save(
             Agent(
@@ -128,7 +170,7 @@ class RegisterAgentUseCase(private val agentRepository: AgentRepository) {
                 lastName = request.lastName,
                 phone = request.phone,
                 email = request.email,
-                agentCode = generateUniqueCode(agentRepository),
+                agentCode = agentCode,
                 lbcId = request.lbcId,
                 lbcName = "",
                 region = request.region,
@@ -137,9 +179,9 @@ class RegisterAgentUseCase(private val agentRepository: AgentRepository) {
                 latitude = null,
                 longitude = null,
                 lastSeen = null,
-                joinedDate = LocalDateTime.now(),
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now(),
+                joinedDate = now,
+                createdAt = now,
+                updatedAt = now,
                 createdBy = null,
                 updatedBy = null
             )

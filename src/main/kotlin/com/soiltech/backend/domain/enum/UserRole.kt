@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue
 enum class UserRole(@JsonValue val value: String) {
     AGENT("agent"),
     CUSTOMER("customer"),
-    ADMIN("admin");
+    ADMIN("admin"),
+    LBC("lbc");
 
     companion object {
         @JsonCreator

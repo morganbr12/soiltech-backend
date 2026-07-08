@@ -31,7 +31,11 @@ data class CreateLbcRequest(
 
     @field:NotBlank(message = "Email is required")
     @field:Email(message = "Invalid email address")
-    val email: String
+    val email: String,
+
+    @field:NotBlank(message = "Password is required")
+    @field:Size(min = 8, message = "Password must be at least 8 characters")
+    val password: String
 )
 
 data class UpdateLbcRequest(
