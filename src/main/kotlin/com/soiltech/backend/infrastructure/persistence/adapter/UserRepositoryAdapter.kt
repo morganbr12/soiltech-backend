@@ -35,4 +35,6 @@ class UserRepositoryAdapter(
 
     override fun existsByPhone(phone: String): Boolean =
         jpaRepository.existsByPhone(phone)
+
+    override fun delete(id: UUID) = jpaRepository.deleteById(id)
 }

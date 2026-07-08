@@ -213,7 +213,10 @@ class SuspendLbcUseCase(private val lbcRepository: LbcRepository) {
 // ── Delete ────────────────────────────────────────────────────────────────────
 
 @Service
-class DeleteLbcUseCase(private val lbcRepository: LbcRepository) {
+class DeleteLbcUseCase(
+    private val lbcRepository: LbcRepository,
+    private val userRepository: UserRepository
+) {
 
     @Transactional
     fun execute(id: UUID) {
@@ -226,6 +229,7 @@ class DeleteLbcUseCase(private val lbcRepository: LbcRepository) {
             )
 
         lbcRepository.delete(id)
+        lbc.userId?.let { userRepository.delete(it) }
     }
 }
 
