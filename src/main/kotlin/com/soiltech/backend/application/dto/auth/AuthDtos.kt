@@ -9,8 +9,10 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 data class LoginRequest(
-    @field:NotBlank @field:Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Invalid phone number")
-    val phone: String,
+    @field:Email
+    val email: String? = null,
+    @field:Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Invalid phone number")
+    val phone: String? = null,
     @field:NotBlank
     val password: String
 )
