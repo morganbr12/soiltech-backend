@@ -33,7 +33,13 @@ class LbcRepositoryAdapter(
         val result = mutableMapOf<LbcStatus, Long>()
         LbcStatus.entries.forEach { result[it] = 0L }
         jpaRepository.countGroupByStatus().forEach { row ->
-            result[row[0] as LbcStatus] = row[1] as Long
+            val status = when (val raw = row[0]) {
+                is LbcStatus -> raw
+                is String -> LbcStatus.entries.firstOrNull { it.name == raw || it.value == raw }
+                else -> null
+            }
+            val count = (row[1] as? Long) ?: (row[1] as? Number)?.toLong() ?: 0L
+            if (status != null) result[status] = count
         }
         return result
     }

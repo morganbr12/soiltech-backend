@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
 @RestController
-@RequestMapping("/lbcs")
+@RequestMapping("/lbc")
 class LbcController(
     private val listLbcsUseCase: ListLbcsUseCase,
     private val getLbcUseCase: GetLbcUseCase,
@@ -31,13 +31,14 @@ class LbcController(
     fun list(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(name = "per_page", defaultValue = "20") perPage: Int,
-        @RequestParam(required = false) status: LbcStatus?,
+        @RequestParam(required = false) status: String?,
         @RequestParam(required = false) region: String?,
         @RequestParam(required = false) search: String?,
         @RequestParam(name = "sort_by", defaultValue = "createdAt") sortBy: String,
         @RequestParam(name = "sort_order", defaultValue = "desc") sortOrder: String
     ): ResponseEntity<ApiResponse<List<LbcResponse>>> {
-        val (items, summary, meta) = listLbcsUseCase.execute(status, region, search, page, perPage, sortBy, sortOrder)
+        val lbcStatus = status?.let { LbcStatus.fromValue(it) }
+        val (items, summary, meta) = listLbcsUseCase.execute(lbcStatus, region, search, page, perPage, sortBy, sortOrder)
         return ResponseEntity.ok(ApiResponse.success(items, meta = meta, summary = summary))
     }
 
@@ -85,11 +86,11 @@ class LbcController(
     @GetMapping("/export")
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('lbc:view')")
     fun export(
-        @RequestParam(required = false) status: LbcStatus?,
+        @RequestParam(required = false) status: String?,
         @RequestParam(required = false) region: String?,
         @RequestParam(name = "ids", required = false) ids: List<UUID>?
     ): ResponseEntity<ByteArray> {
-        val csvBytes = exportLbcsUseCase.execute(status, region, ids)
+        val csvBytes = exportLbcsUseCase.execute(status?.let { LbcStatus.fromValue(it) }, region, ids)
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"lbcs-export.csv\"")
             .contentType(MediaType.parseMediaType("text/csv"))
