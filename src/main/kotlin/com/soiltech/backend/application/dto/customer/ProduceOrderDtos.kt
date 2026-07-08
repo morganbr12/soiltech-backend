@@ -1,0 +1,65 @@
+package com.soiltech.backend.application.dto.customer
+
+import com.soiltech.backend.domain.enum.ProduceOrderStatus
+import com.soiltech.backend.domain.enum.ProducePaymentStatus
+import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+
+data class ProduceOrderResponse(
+    val id: UUID,
+    val orderCode: String,
+    val customerId: UUID,
+    val customerName: String,
+    val produce: String,
+    val quantityKg: Double,
+    val pricePerKg: BigDecimal,
+    val totalAmount: BigDecimal,
+    val status: ProduceOrderStatus,
+    val paymentStatus: ProducePaymentStatus,
+    val assignedAgent: String?,
+    val assignedDriver: String?,
+    val orderDate: LocalDate,
+    val deliveryDate: LocalDate?,
+    val region: String,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+)
+
+data class ProduceOrderSummaryResponse(
+    val total: Long,
+    val pending: Long,
+    val confirmed: Long,
+    val processing: Long,
+    val delivered: Long,
+    val cancelled: Long,
+    val unpaid: Long,
+    val totalValue: BigDecimal
+)
+
+data class CreateProduceOrderRequest(
+    @field:NotNull(message = "Customer ID is required")
+    val customerId: UUID,
+
+    @field:NotBlank(message = "Produce is required")
+    val produce: String,
+
+    @field:DecimalMin("0.01", message = "Quantity must be positive")
+    val quantityKg: Double,
+
+    @field:NotNull
+    @field:DecimalMin("0.01", message = "Price must be positive")
+    val pricePerKg: BigDecimal,
+
+    @field:NotBlank(message = "Region is required")
+    val region: String,
+
+    val assignedAgent: String? = null
+)
+
+data class CancelOrderRequest(val reason: String? = null)

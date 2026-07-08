@@ -59,7 +59,8 @@ class AdminRbacSeeder(
             "audit:view",
             "settings:view", "settings:manage", "roles:manage",
             "customers:view", "customers:create", "customers:edit", "customers:delete",
-            "customers:verify", "customers:orders", "customers:wallet",
+            "customers:verify", "customers:suspend", "customers:orders", "customers:wallet",
+            "customers:reviews", "customers:chats",
             "customers:notifications", "customers:analytics", "customers:reports"
         )
 
@@ -83,8 +84,9 @@ class AdminRbacSeeder(
                 "audit:view",
                 "settings:view",
                 "customers:view", "customers:create", "customers:edit", "customers:verify",
-                "customers:orders", "customers:wallet", "customers:notifications",
-                "customers:analytics", "customers:reports"
+                "customers:suspend", "customers:orders", "customers:wallet",
+                "customers:reviews", "customers:chats",
+                "customers:notifications", "customers:analytics", "customers:reports"
             ),
             AdminRoleName.REGIONAL_MANAGER to setOf(
                 "dashboard:view",
@@ -153,7 +155,8 @@ class AdminRbacSeeder(
                 "notifications:view", "notifications:send",
                 "reports:view",
                 "customers:view", "customers:edit", "customers:orders",
-                "customers:wallet", "customers:notifications", "customers:reports"
+                "customers:wallet", "customers:reviews", "customers:chats",
+                "customers:notifications", "customers:reports"
             ),
             AdminRoleName.AUDITOR to setOf(
                 "dashboard:view",

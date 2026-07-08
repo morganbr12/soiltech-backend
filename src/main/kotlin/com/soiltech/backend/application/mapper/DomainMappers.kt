@@ -87,3 +87,4 @@ fun CustomerProfile.toDto() = CustomerProfileDto(
     accountType = accountType, location = location,
     createdAt = createdAt, updatedAt = updatedAt
 )
+
