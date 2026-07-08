@@ -11,6 +11,7 @@ import com.soiltech.backend.domain.repository.RefreshTokenRepository
 import com.soiltech.backend.domain.repository.UserRepository
 import com.soiltech.backend.infrastructure.security.JwtProperties
 import com.soiltech.backend.infrastructure.security.JwtService
+import com.soiltech.backend.interfaces.exception.BadRequestException
 import com.soiltech.backend.interfaces.exception.UnauthorizedException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -27,13 +28,29 @@ class LoginUseCase(
     private val passwordEncoder: PasswordEncoder
 ) {
     fun execute(request: LoginRequest): AuthResponse {
-        val user = userRepository.findByPhone(request.phone)
-            ?: throw UnauthorizedException("Invalid phone number or password")
+        val user = when {
+            request.email != null -> {
+                val found = userRepository.findByEmail(request.email)
+                    ?: throw UnauthorizedException("Invalid email or password")
+                if (found.role != UserRole.ADMIN)
+                    throw UnauthorizedException("Invalid email or password")
+                found
+            }
+            request.phone != null -> {
+                val found = userRepository.findByPhone(request.phone)
+                    ?: throw UnauthorizedException("Invalid phone number or password")
+                if (found.role == UserRole.ADMIN)
+                    throw UnauthorizedException("Admin accounts must log in with email")
+                found
+            }
+            else -> throw BadRequestException("Email or phone number is required")
+        }
 
         if (!user.isActive) throw UnauthorizedException("Account is deactivated")
 
         if (!passwordEncoder.matches(request.password, user.passwordHash)) {
-            throw UnauthorizedException("Invalid phone number or password")
+            val msg = if (request.email != null) "Invalid email or password" else "Invalid phone number or password"
+            throw UnauthorizedException(msg)
         }
 
         val fullName: String
