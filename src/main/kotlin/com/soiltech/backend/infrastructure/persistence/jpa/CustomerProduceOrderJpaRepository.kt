@@ -49,11 +49,11 @@ interface CustomerProduceOrderJpaRepository :
     fun findLastOrderDatesByCustomerIds(@Param("ids") ids: List<UUID>): List<Array<Any>>
 
     @Query("""
-        SELECT MONTH(o.orderDate), COALESCE(SUM(o.totalAmount), 0)
+        SELECT EXTRACT(MONTH FROM o.orderDate), COALESCE(SUM(o.totalAmount), 0)
         FROM CustomerProduceOrderJpaEntity o
-        WHERE YEAR(o.orderDate) = :year
-        GROUP BY MONTH(o.orderDate)
-        ORDER BY MONTH(o.orderDate)
+        WHERE EXTRACT(YEAR FROM o.orderDate) = :year
+        GROUP BY EXTRACT(MONTH FROM o.orderDate)
+        ORDER BY EXTRACT(MONTH FROM o.orderDate)
     """)
     fun sumMonthlyRevenueByYear(@Param("year") year: Int): List<Array<Any>>
 

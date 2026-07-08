@@ -2,9 +2,7 @@ package com.soiltech.backend.application.usecase.lbc
 
 import com.soiltech.backend.application.dto.lbc.*
 import com.soiltech.backend.domain.entity.Lbc
-import com.soiltech.backend.domain.entity.User
 import com.soiltech.backend.domain.enum.LbcStatus
-import com.soiltech.backend.domain.enum.UserRole
 import com.soiltech.backend.domain.repository.LbcRepository
 import com.soiltech.backend.domain.repository.UserRepository
 import com.soiltech.backend.interfaces.exception.BadRequestException
@@ -13,7 +11,6 @@ import com.soiltech.backend.interfaces.exception.NotFoundException
 import com.soiltech.backend.interfaces.response.PaginationMeta
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -92,11 +89,7 @@ class GetLbcUseCase(private val lbcRepository: LbcRepository) {
 // ── Create ────────────────────────────────────────────────────────────────────
 
 @Service
-class CreateLbcUseCase(
-    private val lbcRepository: LbcRepository,
-    private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
-) {
+class CreateLbcUseCase(private val lbcRepository: LbcRepository) {
 
     @Transactional
     fun execute(request: CreateLbcRequest): LbcResponse {
@@ -104,30 +97,12 @@ class CreateLbcUseCase(
             throw ConflictException("LBC with code '${request.code}' already exists")
         if (lbcRepository.existsByEmail(request.email))
             throw ConflictException("LBC with email '${request.email}' already exists")
-        if (userRepository.existsByEmail(request.email))
-            throw ConflictException("A user account with email '${request.email}' already exists")
-        if (userRepository.existsByPhone(request.phone))
-            throw ConflictException("A user account with phone '${request.phone}' already exists")
 
         val now = LocalDateTime.now()
-
-        val user = userRepository.save(
-            User(
-                id = UUID.randomUUID(),
-                email = request.email,
-                phone = request.phone,
-                passwordHash = passwordEncoder.encode(request.password),
-                role = UserRole.LBC,
-                isActive = true,
-                createdAt = now,
-                updatedAt = now
-            )
-        )
-
         val lbc = lbcRepository.save(
             Lbc(
                 id = UUID.randomUUID(),
-                userId = user.id,
+                userId = null,
                 name = request.name,
                 code = request.code,
                 region = request.region,

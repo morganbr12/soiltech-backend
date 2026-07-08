@@ -39,11 +39,11 @@ interface CustomerProfileJpaRepository :
     fun avgRating(): Double
 
     @Query("""
-        SELECT MONTH(c.createdAt), COUNT(c)
+        SELECT EXTRACT(MONTH FROM c.createdAt), COUNT(c)
         FROM CustomerProfileJpaEntity c
-        WHERE YEAR(c.createdAt) = :year
-        GROUP BY MONTH(c.createdAt)
-        ORDER BY MONTH(c.createdAt)
+        WHERE EXTRACT(YEAR FROM c.createdAt) = :year
+        GROUP BY EXTRACT(MONTH FROM c.createdAt)
+        ORDER BY EXTRACT(MONTH FROM c.createdAt)
     """)
     fun countMonthlyByYear(year: Int): List<Array<Any>>
 }

@@ -63,12 +63,12 @@ class CustomerProfileJpaEntity(
     var location: String? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(20)")
-    var status: CustomerStatus = CustomerStatus.PENDING,
+    @Column(columnDefinition = "varchar(20)")
+    var status: CustomerStatus? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(20)")
-    var tier: CustomerTier = CustomerTier.BRONZE,
+    @Column(columnDefinition = "varchar(20)")
+    var tier: CustomerTier? = null,
 
     @Column(length = 255)
     var businessName: String? = null,
@@ -79,22 +79,19 @@ class CustomerProfileJpaEntity(
     @Column(length = 100, unique = true)
     var nationalId: String? = null,
 
-    @Column(nullable = false)
-    var isVerified: Boolean = false,
+    var isVerified: Boolean? = null,
 
     var verifiedDate: LocalDateTime? = null,
 
     @Column(length = 1000)
     var rejectionReason: String? = null,
 
-    @Column(nullable = false)
-    var rating: Double = 0.0,
+    var rating: Double? = null,
 
     var lat: Double? = null,
     var lng: Double? = null,
 
-    @Column(nullable = false)
-    var joinedDate: LocalDateTime = LocalDateTime.now()
+    var joinedDate: LocalDateTime? = null
 
 ) : BaseJpaEntity() {
 
@@ -113,18 +110,18 @@ class CustomerProfileJpaEntity(
         profileImageUrl = profileImageUrl,
         accountType = accountType,
         location = location,
-        status = status,
-        tier = tier,
+        status = status ?: CustomerStatus.PENDING,
+        tier = tier ?: CustomerTier.BRONZE,
         businessName = businessName,
         businessType = businessType,
         nationalId = nationalId,
-        isVerified = isVerified,
+        isVerified = isVerified ?: false,
         verifiedDate = verifiedDate,
         rejectionReason = rejectionReason,
-        rating = rating,
+        rating = rating ?: 0.0,
         lat = lat,
         lng = lng,
-        joinedDate = joinedDate,
+        joinedDate = joinedDate ?: createdAt,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
