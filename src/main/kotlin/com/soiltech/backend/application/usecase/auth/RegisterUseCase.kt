@@ -1,6 +1,7 @@
 package com.soiltech.backend.application.usecase.auth
 
 import com.soiltech.backend.application.dto.auth.AuthResponse
+import com.soiltech.backend.application.dto.auth.AuthRoleDto
 import com.soiltech.backend.application.dto.auth.RegisterRequest
 import com.soiltech.backend.domain.entity.AgentProfile
 import com.soiltech.backend.domain.entity.CustomerProfile
@@ -92,7 +93,8 @@ class RegisterUseCase(
         return AuthResponse(
             accessToken = accessToken,
             refreshToken = refreshToken,
-            expiresIn = jwtProperties.accessTokenExpiration / 1000
+            expiresIn = jwtProperties.accessTokenExpiration / 1000,
+            role = AuthRoleDto(name = user.role.name, value = user.role.value, permissions = emptyList())
         )
     }
 

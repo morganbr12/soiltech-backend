@@ -46,11 +46,18 @@ data class AuthUserDto(
     val updatedAt: LocalDateTime
 )
 
+data class AuthRoleDto(
+    val name: String,
+    val value: String,
+    val permissions: List<String>
+)
+
 data class AuthResponse(
     val accessToken: String,
     val refreshToken: String,
     val tokenType: String = "Bearer",
-    val expiresIn: Long
+    val expiresIn: Long,
+    val role: AuthRoleDto
 )
 
 data class RefreshTokenRequest(
