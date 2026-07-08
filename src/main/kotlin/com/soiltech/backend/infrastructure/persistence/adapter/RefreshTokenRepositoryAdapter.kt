@@ -13,6 +13,7 @@ class RefreshTokenRepositoryAdapter(
     private val jpaRepository: RefreshTokenJpaRepository
 ) : RefreshTokenRepository {
 
+    @Transactional
     override fun save(userId: UUID, token: String, expiryMs: Long) {
         jpaRepository.deleteByUserId(userId)
         jpaRepository.save(

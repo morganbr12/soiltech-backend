@@ -10,7 +10,8 @@ data class ApiResponse<T>(
     val message: String? = null,
     @JsonProperty("status_code")
     val statusCode: Int? = null,
-    val meta: PaginationMeta? = null
+    val meta: PaginationMeta? = null,
+    val summary: Any? = null
 ) {
     companion object {
         fun <T> success(data: T, message: String? = null, statusCode: Int = 200): ApiResponse<T> =
@@ -23,6 +24,15 @@ data class ApiResponse<T>(
             meta: PaginationMeta
         ): ApiResponse<T> =
             ApiResponse(success = true, data = data, message = message, statusCode = statusCode, meta = meta)
+
+        fun <T> success(
+            data: T,
+            message: String? = null,
+            statusCode: Int = 200,
+            meta: PaginationMeta,
+            summary: Any
+        ): ApiResponse<T> =
+            ApiResponse(success = true, data = data, message = message, statusCode = statusCode, meta = meta, summary = summary)
 
         fun <T> created(data: T, message: String? = "Created successfully"): ApiResponse<T> =
             ApiResponse(success = true, data = data, message = message, statusCode = 201)
