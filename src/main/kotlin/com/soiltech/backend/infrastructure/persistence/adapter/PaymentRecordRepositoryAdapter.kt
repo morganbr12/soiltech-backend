@@ -28,7 +28,7 @@ class PaymentRecordRepositoryAdapter(
         jpaRepository.save(PaymentRecordJpaEntity.fromDomain(record)).toDomain()
 
     override fun sumMonthlyRevenueByAgent(agentId: UUID, monthStart: LocalDateTime, monthEnd: LocalDateTime): BigDecimal =
-        jpaRepository.sumMonthlyRevenueByAgent(agentId, monthStart, monthEnd)
+        jpaRepository.sumMonthlyRevenueByAgent(agentId, PaymentStatus.COMPLETED, monthStart, monthEnd)
 
     override fun findRecentByAgent(agentId: UUID, limit: Int): List<PaymentRecord> =
         jpaRepository.findRecentByAgent(agentId, PageRequest.of(0, limit.coerceIn(1, 50)))

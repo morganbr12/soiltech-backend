@@ -72,7 +72,10 @@ class FarmerJpaEntity(
     var rejectionReason: String? = null,
 
     @Column(nullable = false)
-    var joinedDate: LocalDateTime = LocalDateTime.now()
+    var joinedDate: LocalDateTime = LocalDateTime.now(),
+
+    @Column(nullable = false, length = 201)
+    var fullName: String = ""
 
 ) : BaseJpaEntity() {
 

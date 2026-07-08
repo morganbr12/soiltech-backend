@@ -33,12 +33,13 @@ interface PaymentRecordJpaRepository : JpaRepository<PaymentRecordJpaEntity, UUI
         SELECT COALESCE(SUM(p.amount), 0)
         FROM PaymentRecordJpaEntity p
         WHERE p.agentId = :agentId
-          AND p.status = com.soiltech.backend.domain.enum.PaymentStatus.COMPLETED
+          AND p.status = :status
           AND p.paidAt >= :monthStart
           AND p.paidAt < :monthEnd
     """)
     fun sumMonthlyRevenueByAgent(
         @Param("agentId") agentId: UUID,
+        @Param("status") status: PaymentStatus,
         @Param("monthStart") monthStart: LocalDateTime,
         @Param("monthEnd") monthEnd: LocalDateTime
     ): BigDecimal

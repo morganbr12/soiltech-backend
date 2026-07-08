@@ -66,12 +66,12 @@ interface ProduceRecordJpaRepository : JpaRepository<ProduceRecordJpaEntity, UUI
         @Param("weekEnd") weekEnd: LocalDateTime
     ): BigDecimal
 
-    @Query("""
-        SELECT EXTRACT(DAY_OF_WEEK FROM p.createdAt), COALESCE(SUM(p.quantityKg), 0)
-        FROM ProduceRecordJpaEntity p
-        WHERE p.agentId = :agentId AND p.createdAt >= :weekStart AND p.createdAt < :weekEnd
-        GROUP BY EXTRACT(DAY_OF_WEEK FROM p.createdAt)
-    """)
+    @Query(value = """
+        SELECT EXTRACT(DOW FROM created_at)::integer AS dow, COALESCE(SUM(quantity_kg), 0) AS kg
+        FROM produce_records
+        WHERE agent_id = :agentId AND created_at >= :weekStart AND created_at < :weekEnd
+        GROUP BY EXTRACT(DOW FROM created_at)::integer
+    """, nativeQuery = true)
     fun sumWeightByDayOfWeekForWeek(
         @Param("agentId") agentId: UUID,
         @Param("weekStart") weekStart: LocalDateTime,

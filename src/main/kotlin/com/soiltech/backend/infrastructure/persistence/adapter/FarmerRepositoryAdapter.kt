@@ -121,6 +121,7 @@ class FarmerRepositoryAdapter(
             existing.apply {
                 firstName = farmer.firstName
                 lastName = farmer.lastName
+                fullName = "${farmer.firstName} ${farmer.lastName}"
                 phone = farmer.phone
                 email = farmer.email
                 nationalId = farmer.nationalId
@@ -144,6 +145,7 @@ class FarmerRepositoryAdapter(
                     farmerCode = farmer.farmerCode,
                     firstName = farmer.firstName,
                     lastName = farmer.lastName,
+                    fullName = "${farmer.firstName} ${farmer.lastName}",
                     phone = farmer.phone,
                     email = farmer.email,
                     nationalId = farmer.nationalId,
