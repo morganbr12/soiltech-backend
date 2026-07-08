@@ -100,11 +100,11 @@ class ListOrdersUseCase(
     private val customerOrderRepository: CustomerOrderRepository,
     private val customerProfileRepository: CustomerProfileRepository
 ) {
-    fun execute(userId: UUID, status: OrderStatus?, page: Int, perPage: Int): Pair<List<CustomerOrderListDto>, PaginationMeta> {
+    fun execute(userId: UUID, statuses: List<OrderStatus>?, page: Int, perPage: Int): Pair<List<CustomerOrderListDto>, PaginationMeta> {
         val customer = customerProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Customer profile not found")
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
-        val result = customerOrderRepository.findAll(customer.id, status, pageable)
+        val result = customerOrderRepository.findAll(customer.id, statuses, pageable)
         val dtos = result.content.map { order ->
             val items = customerOrderRepository.findItemsByOrderId(order.id)
             order.toListDto(items.size)

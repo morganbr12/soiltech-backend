@@ -26,8 +26,11 @@ class CustomerOrderRepositoryAdapter(
     override fun findById(id: UUID): CustomerOrder? =
         orderJpaRepository.findById(id).orElse(null)?.toDomain()
 
-    override fun findAll(customerId: UUID, status: OrderStatus?, pageable: Pageable): Page<CustomerOrder> =
-        orderJpaRepository.findAllFiltered(customerId, status, pageable).map { it.toDomain() }
+    override fun findAll(customerId: UUID, statuses: List<OrderStatus>?, pageable: Pageable): Page<CustomerOrder> =
+        if (statuses == null)
+            orderJpaRepository.findByCustomerIdOrderByCreatedAtDesc(customerId, pageable).map { it.toDomain() }
+        else
+            orderJpaRepository.findByCustomerIdAndStatusInOrderByCreatedAtDesc(customerId, statuses, pageable).map { it.toDomain() }
 
     override fun saveOrder(order: CustomerOrder): CustomerOrder =
         orderJpaRepository.save(CustomerOrderJpaEntity.fromDomain(order)).toDomain()

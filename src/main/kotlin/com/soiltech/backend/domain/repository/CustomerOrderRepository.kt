@@ -10,7 +10,7 @@ import java.util.UUID
 
 interface CustomerOrderRepository {
     fun findById(id: UUID): CustomerOrder?
-    fun findAll(customerId: UUID, status: OrderStatus?, pageable: Pageable): Page<CustomerOrder>
+    fun findAll(customerId: UUID, statuses: List<OrderStatus>?, pageable: Pageable): Page<CustomerOrder>
     fun saveOrder(order: CustomerOrder): CustomerOrder
     fun saveItems(items: List<OrderItem>): List<OrderItem>
     fun saveTimeline(timeline: OrderTimeline): OrderTimeline

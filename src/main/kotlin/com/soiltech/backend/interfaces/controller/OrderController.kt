@@ -41,10 +41,15 @@ class OrderController(
     fun list(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(name = "per_page", defaultValue = "20") perPage: Int,
-        @RequestParam(required = false) status: OrderStatus?,
+        @RequestParam(required = false) status: String?,
         @AuthenticationPrincipal principal: UserPrincipal
     ): ResponseEntity<ApiResponse<List<CustomerOrderListDto>>> {
-        val (orders, meta) = listOrdersUseCase.execute(principal.id, status, page, perPage)
+        val statuses = when (status?.lowercase()) {
+            null -> null
+            "active" -> listOf(OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED)
+            else -> listOf(OrderStatus.fromValue(status))
+        }
+        val (orders, meta) = listOrdersUseCase.execute(principal.id, statuses, page, perPage)
         return ResponseEntity.ok(ApiResponse.success(orders, meta = meta))
     }
 

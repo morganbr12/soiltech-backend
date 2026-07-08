@@ -7,7 +7,10 @@ enum class CustomerAccountType(@JsonValue val value: String) {
     INDIVIDUAL("individual"),
     BUSINESS("business"),
     RETAIL_SHOP("retail_shop"),
-    RESTAURANT("restaurant");
+    RESTAURANT("restaurant"),
+    MARKET_TRADER("market_trader"),
+    PROCESSOR("processor"),
+    EXPORTER("exporter");
 
     companion object {
         @JsonCreator
