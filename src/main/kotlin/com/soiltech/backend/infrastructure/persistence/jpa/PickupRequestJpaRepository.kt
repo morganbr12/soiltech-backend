@@ -26,4 +26,13 @@ interface PickupRequestJpaRepository : JpaRepository<PickupRequestJpaEntity, UUI
         @Param("status") status: LogisticsStatus?,
         pageable: Pageable
     ): Page<PickupRequestJpaEntity>
+
+    @Query("SELECT COUNT(p) FROM PickupRequestJpaEntity p WHERE p.agentId = :agentId AND p.status IN :statuses")
+    fun countByAgentAndStatusIn(
+        @Param("agentId") agentId: UUID,
+        @Param("statuses") statuses: List<LogisticsStatus>
+    ): Long
+
+    @Query("SELECT p FROM PickupRequestJpaEntity p WHERE p.agentId = :agentId ORDER BY p.createdAt DESC")
+    fun findRecentByAgent(@Param("agentId") agentId: UUID, pageable: Pageable): List<PickupRequestJpaEntity>
 }

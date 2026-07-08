@@ -52,4 +52,16 @@ interface FarmerJpaRepository : JpaRepository<FarmerJpaEntity, UUID>, JpaSpecifi
         GROUP BY pr.farmerId
     """)
     fun sumEarningsByFarmerIds(@Param("ids") ids: List<UUID>): List<Array<Any>>
+
+    @Query("SELECT COUNT(f) FROM FarmerJpaEntity f WHERE f.agentId = :agentId")
+    fun countByAgentId(@Param("agentId") agentId: UUID): Long
+
+    @Query("SELECT COUNT(f) FROM FarmerJpaEntity f WHERE f.agentId = :agentId AND f.status = :status")
+    fun countByAgentIdAndStatus(
+        @Param("agentId") agentId: UUID,
+        @Param("status") status: com.soiltech.backend.domain.enum.FarmerStatus
+    ): Long
+
+    @Query("SELECT f FROM FarmerJpaEntity f WHERE f.agentId = :agentId ORDER BY f.createdAt DESC")
+    fun findRecentByAgentId(@Param("agentId") agentId: UUID, pageable: Pageable): List<FarmerJpaEntity>
 }

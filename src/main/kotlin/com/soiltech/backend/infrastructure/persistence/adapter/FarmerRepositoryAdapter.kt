@@ -181,6 +181,32 @@ class FarmerRepositoryAdapter(
 
     override fun countAll(): Long = jpaRepository.countAll()
 
+    override fun countByAgentId(agentId: UUID): Long = jpaRepository.countByAgentId(agentId)
+
+    override fun countApprovedByAgentId(agentId: UUID): Long =
+        jpaRepository.countByAgentIdAndStatus(agentId, FarmerStatus.APPROVED)
+
+    override fun findRecentByAgent(agentId: UUID, limit: Int): List<Farmer> {
+        val entities = jpaRepository.findRecentByAgentId(agentId, PageRequest.of(0, limit.coerceIn(1, 50)))
+        val agentName = entities.firstOrNull()?.let { resolveAgentName(it.agentId) } ?: ""
+        val lbcName = entities.firstOrNull()?.let { resolveLbcName(it.lbcId) } ?: ""
+        return entities.map { it.toDomain(agentName, lbcName) }
+    }
+
+    override fun findByIds(ids: List<UUID>): List<Farmer> {
+        if (ids.isEmpty()) return emptyList()
+        val entities = jpaRepository.findAllById(ids)
+        val agentIds = entities.map { it.agentId }.distinct()
+        val lbcIds = entities.map { it.lbcId }.distinct()
+        val agentMap = agentJpaRepository.findAllById(agentIds).associateBy { it.id!! }
+        val lbcMap = lbcJpaRepository.findAllById(lbcIds).associateBy { it.id!! }
+        return entities.map { entity ->
+            val agentName = agentMap[entity.agentId]?.let { "${it.firstName} ${it.lastName}" } ?: ""
+            val lbcName = lbcMap[entity.lbcId]?.name ?: ""
+            entity.toDomain(agentName, lbcName)
+        }
+    }
+
     private fun buildSpec(
         status: FarmerStatus?,
         region: String?,

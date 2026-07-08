@@ -133,6 +133,9 @@ class AgentRepositoryAdapter(
 
     override fun existsByAgentCode(code: String): Boolean = jpaRepository.existsByAgentCode(code)
 
+    override fun findByAgentCode(agentCode: String): Agent? =
+        jpaRepository.findByAgentCode(agentCode)?.toDomain()
+
     private fun buildSpec(status: AgentStatus?, region: String?, search: String?): Specification<AgentJpaEntity> =
         Specification { root, query, cb ->
             val predicates = mutableListOf<Predicate>()

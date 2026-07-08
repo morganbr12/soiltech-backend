@@ -6,6 +6,7 @@ import com.soiltech.backend.domain.repository.PickupRequestRepository
 import com.soiltech.backend.infrastructure.persistence.entity.PickupRequestJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.PickupRequestJpaRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -33,4 +34,14 @@ class PickupRequestRepositoryAdapter(
         }
         return jpaRepository.save(entity).toDomain()
     }
+
+    override fun countActiveByAgent(agentId: UUID): Long =
+        jpaRepository.countByAgentAndStatusIn(
+            agentId,
+            listOf(LogisticsStatus.PENDING, LogisticsStatus.IN_TRANSIT)
+        )
+
+    override fun findRecentByAgent(agentId: UUID, limit: Int): List<PickupRequest> =
+        jpaRepository.findRecentByAgent(agentId, PageRequest.of(0, limit.coerceIn(1, 50)))
+            .map { it.toDomain() }
 }

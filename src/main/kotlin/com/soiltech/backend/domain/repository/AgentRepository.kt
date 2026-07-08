@@ -19,4 +19,5 @@ interface AgentRepository {
     fun existsByEmailAndIdNot(email: String, id: UUID): Boolean
     fun existsByPhoneAndIdNot(phone: String, id: UUID): Boolean
     fun existsByAgentCode(code: String): Boolean
+    fun findByAgentCode(agentCode: String): Agent?
 }

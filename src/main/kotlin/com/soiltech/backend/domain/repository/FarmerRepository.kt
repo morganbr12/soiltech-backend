@@ -28,4 +28,10 @@ interface FarmerRepository {
     fun existsByNationalIdAndIdNot(nationalId: String, id: UUID): Boolean
     fun existsByFarmerCode(code: String): Boolean
     fun countAll(): Long
+
+    // Dashboard aggregates
+    fun countByAgentId(agentId: UUID): Long
+    fun countApprovedByAgentId(agentId: UUID): Long
+    fun findRecentByAgent(agentId: UUID, limit: Int): List<Farmer>
+    fun findByIds(ids: List<UUID>): List<Farmer>
 }

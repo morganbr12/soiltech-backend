@@ -11,4 +11,8 @@ interface PickupRequestRepository {
     fun findAll(agentId: UUID, farmerId: UUID?, status: LogisticsStatus?, pageable: Pageable): Page<PickupRequest>
     fun save(request: PickupRequest): PickupRequest
     fun update(request: PickupRequest): PickupRequest
+
+    // Dashboard aggregates
+    fun countActiveByAgent(agentId: UUID): Long
+    fun findRecentByAgent(agentId: UUID, limit: Int): List<PickupRequest>
 }

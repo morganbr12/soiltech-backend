@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
@@ -26,4 +28,27 @@ interface PaymentRecordJpaRepository : JpaRepository<PaymentRecordJpaEntity, UUI
         @Param("status") status: PaymentStatus?,
         pageable: Pageable
     ): Page<PaymentRecordJpaEntity>
+
+    @Query("""
+        SELECT COALESCE(SUM(p.amount), 0)
+        FROM PaymentRecordJpaEntity p
+        WHERE p.agentId = :agentId
+          AND p.status = com.soiltech.backend.domain.enum.PaymentStatus.COMPLETED
+          AND p.paidAt >= :monthStart
+          AND p.paidAt < :monthEnd
+    """)
+    fun sumMonthlyRevenueByAgent(
+        @Param("agentId") agentId: UUID,
+        @Param("monthStart") monthStart: LocalDateTime,
+        @Param("monthEnd") monthEnd: LocalDateTime
+    ): BigDecimal
+
+    @Query("SELECT p FROM PaymentRecordJpaEntity p WHERE p.agentId = :agentId ORDER BY p.createdAt DESC")
+    fun findRecentByAgent(@Param("agentId") agentId: UUID, pageable: Pageable): List<PaymentRecordJpaEntity>
+
+    @Query("SELECT COUNT(p) FROM PaymentRecordJpaEntity p WHERE p.agentId = :agentId AND p.createdAt >= :since")
+    fun countRecentByAgent(
+        @Param("agentId") agentId: UUID,
+        @Param("since") since: LocalDateTime
+    ): Long
 }

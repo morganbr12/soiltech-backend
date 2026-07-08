@@ -33,4 +33,6 @@ interface AgentJpaRepository : JpaRepository<AgentJpaEntity, UUID>, JpaSpecifica
 
     @Query("SELECT pr.agentId, COALESCE(SUM(pr.quantityKg), 0) FROM ProduceRecordJpaEntity pr WHERE pr.agentId IN :ids GROUP BY pr.agentId")
     fun sumProduceByAgentIds(@Param("ids") ids: List<UUID>): List<Array<Any>>
+
+    fun findByAgentCode(agentCode: String): AgentJpaEntity?
 }

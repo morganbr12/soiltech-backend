@@ -6,8 +6,11 @@ import com.soiltech.backend.domain.repository.PaymentRecordRepository
 import com.soiltech.backend.infrastructure.persistence.entity.PaymentRecordJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.PaymentRecordJpaRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -23,4 +26,14 @@ class PaymentRecordRepositoryAdapter(
 
     override fun save(record: PaymentRecord): PaymentRecord =
         jpaRepository.save(PaymentRecordJpaEntity.fromDomain(record)).toDomain()
+
+    override fun sumMonthlyRevenueByAgent(agentId: UUID, monthStart: LocalDateTime, monthEnd: LocalDateTime): BigDecimal =
+        jpaRepository.sumMonthlyRevenueByAgent(agentId, monthStart, monthEnd)
+
+    override fun findRecentByAgent(agentId: UUID, limit: Int): List<PaymentRecord> =
+        jpaRepository.findRecentByAgent(agentId, PageRequest.of(0, limit.coerceIn(1, 50)))
+            .map { it.toDomain() }
+
+    override fun countRecentByAgent(agentId: UUID, since: LocalDateTime): Long =
+        jpaRepository.countRecentByAgent(agentId, since)
 }
