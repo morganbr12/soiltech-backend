@@ -9,6 +9,8 @@ data class AdminProfile(
     val userId: UUID,
     val fullName: String,
     val email: String,
+    val phone: String?,
+    val region: String?,
     val adminRoleId: UUID,
     val adminRoleName: AdminRoleName,
     val permissions: Set<String>,

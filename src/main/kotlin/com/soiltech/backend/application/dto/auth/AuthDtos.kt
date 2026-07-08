@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
+import java.time.LocalDateTime
 
 data class LoginRequest(
     @field:NotBlank @field:Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Invalid phone number")
@@ -29,14 +30,26 @@ data class RegisterRequest(
     val location: String? = null
 )
 
+data class AuthUserDto(
+    val id: String,
+    val email: String,
+    val firstName: String,
+    val lastName: String,
+    val fullName: String,
+    val phone: String,
+    val role: String,
+    val status: String,
+    val region: String?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+)
+
 data class AuthResponse(
+    val user: AuthUserDto,
     val accessToken: String,
     val refreshToken: String,
     val tokenType: String = "Bearer",
-    val userId: String,
-    val email: String,
-    val role: String,
-    val fullName: String
+    val expiresIn: Long
 )
 
 data class RefreshTokenRequest(

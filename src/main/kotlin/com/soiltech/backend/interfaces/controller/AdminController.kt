@@ -6,14 +6,17 @@ import com.soiltech.backend.application.dto.admin.AssignAdminRoleRequest
 import com.soiltech.backend.application.dto.admin.CreateAdminRequest
 import com.soiltech.backend.application.usecase.admin.AssignAdminRoleUseCase
 import com.soiltech.backend.application.usecase.admin.CreateAdminUserUseCase
+import com.soiltech.backend.application.usecase.admin.GetAdminProfileUseCase
 import com.soiltech.backend.application.usecase.admin.GetAdminRoleUseCase
 import com.soiltech.backend.application.usecase.admin.ListAdminRolesUseCase
 import com.soiltech.backend.application.usecase.admin.ListAdminUsersUseCase
+import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.interfaces.response.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
@@ -24,8 +27,18 @@ class AdminController(
     private val listAdminRolesUseCase: ListAdminRolesUseCase,
     private val getAdminRoleUseCase: GetAdminRoleUseCase,
     private val listAdminUsersUseCase: ListAdminUsersUseCase,
-    private val assignAdminRoleUseCase: AssignAdminRoleUseCase
+    private val assignAdminRoleUseCase: AssignAdminRoleUseCase,
+    private val getAdminProfileUseCase: GetAdminProfileUseCase
 ) {
+
+    // ── Profile ─────────────────────────────────────────────────────────────
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getProfile(
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<AdminProfileDto>> =
+        ResponseEntity.ok(ApiResponse.success(getAdminProfileUseCase.execute(principal.id)))
 
     // ── Roles ───────────────────────────────────────────────────────────────
 

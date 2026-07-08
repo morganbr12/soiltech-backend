@@ -1,6 +1,7 @@
 package com.soiltech.backend.application.usecase.auth
 
 import com.soiltech.backend.application.dto.auth.AuthResponse
+import com.soiltech.backend.application.dto.auth.AuthUserDto
 import com.soiltech.backend.application.dto.auth.RegisterRequest
 import com.soiltech.backend.domain.entity.AgentProfile
 import com.soiltech.backend.domain.entity.CustomerProfile
@@ -56,12 +57,12 @@ class RegisterUseCase(
             )
         )
 
-        val fullName = when (request.role) {
+        val region: String?
+        when (request.role) {
             UserRole.CUSTOMER -> {
-                val profileId = UUID.randomUUID()
                 customerProfileRepository.save(
                     CustomerProfile(
-                        id = profileId,
+                        id = UUID.randomUUID(),
                         userId = user.id,
                         fullName = request.fullName,
                         phone = request.phone,
@@ -73,23 +74,21 @@ class RegisterUseCase(
                         updatedAt = now
                     )
                 )
-                request.fullName
+                region = null
             }
             else -> {
-                val profileId = UUID.randomUUID()
-                val agentCode = generateAgentCode(agentProfileJpaRepository)
                 agentProfileRepository.save(
                     AgentProfile(
-                        id = profileId,
+                        id = UUID.randomUUID(),
                         userId = user.id,
                         fullName = request.fullName,
-                        agentCode = agentCode,
+                        agentCode = generateAgentCode(agentProfileJpaRepository),
                         region = request.region,
                         createdAt = now,
                         updatedAt = now
                     )
                 )
-                request.fullName
+                region = request.region
             }
         }
 
@@ -99,12 +98,22 @@ class RegisterUseCase(
         refreshTokenRepository.save(user.id, refreshToken, jwtProperties.refreshTokenExpiration)
 
         return AuthResponse(
+            user = AuthUserDto(
+                id = user.id.toString(),
+                email = user.email,
+                firstName = request.fullName.substringBefore(" ").ifBlank { request.fullName },
+                lastName = request.fullName.substringAfter(" ", ""),
+                fullName = request.fullName,
+                phone = user.phone,
+                role = user.role.value,
+                status = "active",
+                region = region,
+                createdAt = user.createdAt,
+                updatedAt = user.updatedAt
+            ),
             accessToken = accessToken,
             refreshToken = refreshToken,
-            userId = user.id.toString(),
-            email = user.email,
-            role = user.role.value,
-            fullName = fullName
+            expiresIn = jwtProperties.accessTokenExpiration / 1000
         )
     }
 

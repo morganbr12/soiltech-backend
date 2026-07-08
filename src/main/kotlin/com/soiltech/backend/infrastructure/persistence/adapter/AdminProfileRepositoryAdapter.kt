@@ -31,6 +31,8 @@ class AdminProfileRepositoryAdapter(
         val entity = if (existing != null) {
             existing.adminRole = roleEntity
             existing.fullName = profile.fullName
+            existing.phone = profile.phone
+            existing.region = profile.region
             existing.isActive = profile.isActive
             existing
         } else {
@@ -39,6 +41,8 @@ class AdminProfileRepositoryAdapter(
                 userId = profile.userId,
                 fullName = profile.fullName,
                 email = profile.email,
+                phone = profile.phone,
+                region = profile.region,
                 adminRole = roleEntity,
                 isActive = profile.isActive
             )

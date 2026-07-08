@@ -56,6 +56,8 @@ class CreateAdminUserUseCase(
                 userId = user.id,
                 fullName = request.fullName,
                 email = user.email,
+                phone = request.phone,
+                region = request.region,
                 adminRoleId = role.id,
                 adminRoleName = role.name,
                 permissions = role.permissions,
@@ -65,7 +67,29 @@ class CreateAdminUserUseCase(
             )
         )
 
-        return profile.toDto(role.toDto())
+        return profile.toDto(phone = request.phone, roleDto = role.toDto())
+    }
+}
+
+@Service
+class GetAdminProfileUseCase(
+    private val adminProfileRepository: AdminProfileRepository,
+    private val userRepository: UserRepository
+) {
+    fun execute(userId: UUID): AdminProfileDto {
+        val profile = adminProfileRepository.findByUserId(userId)
+            ?: throw NotFoundException("Admin profile not found")
+        val phone = profile.phone ?: userRepository.findById(userId)?.phone ?: ""
+        return profile.toDto(
+            phone = phone,
+            roleDto = AdminRoleDto(
+                id = profile.adminRoleId,
+                name = profile.adminRoleName,
+                label = profile.adminRoleName.label,
+                permissions = profile.permissions,
+                permissionCount = profile.permissions.size
+            )
+        )
     }
 }
 
@@ -91,7 +115,8 @@ class ListAdminUsersUseCase(
 ) {
     fun execute(): List<AdminProfileDto> = adminProfileRepository.findAll().map { profile ->
         profile.toDto(
-            AdminRoleDto(
+            phone = profile.phone ?: "",
+            roleDto = AdminRoleDto(
                 id = profile.adminRoleId,
                 name = profile.adminRoleName,
                 label = profile.adminRoleName.label,
@@ -126,7 +151,7 @@ class AssignAdminRoleUseCase(
             )
         )
 
-        return updated.toDto(role.toDto())
+        return updated.toDto(phone = updated.phone ?: "", roleDto = role.toDto())
     }
 }
 
@@ -139,13 +164,17 @@ private fun com.soiltech.backend.domain.entity.AdminRole.toDto() = AdminRoleDto(
     permissionCount = permissions.size
 )
 
-private fun AdminProfile.toDto(roleDto: AdminRoleDto) = AdminProfileDto(
+private fun AdminProfile.toDto(phone: String, roleDto: AdminRoleDto) = AdminProfileDto(
     id = id,
     userId = userId,
+    firstName = fullName.substringBefore(" ").ifBlank { fullName },
+    lastName = fullName.substringAfter(" ", ""),
     fullName = fullName,
     email = email,
+    phone = phone,
+    region = region,
     role = roleDto,
-    isActive = isActive,
+    status = if (isActive) "active" else "inactive",
     createdAt = createdAt,
     updatedAt = updatedAt
 )
