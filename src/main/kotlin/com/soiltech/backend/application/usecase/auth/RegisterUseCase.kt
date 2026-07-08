@@ -1,7 +1,6 @@
 package com.soiltech.backend.application.usecase.auth
 
 import com.soiltech.backend.application.dto.auth.AuthResponse
-import com.soiltech.backend.application.dto.auth.AuthUserDto
 import com.soiltech.backend.application.dto.auth.RegisterRequest
 import com.soiltech.backend.domain.entity.AgentProfile
 import com.soiltech.backend.domain.entity.CustomerProfile
@@ -57,39 +56,32 @@ class RegisterUseCase(
             )
         )
 
-        val region: String?
         when (request.role) {
-            UserRole.CUSTOMER -> {
-                customerProfileRepository.save(
-                    CustomerProfile(
-                        id = UUID.randomUUID(),
-                        userId = user.id,
-                        fullName = request.fullName,
-                        phone = request.phone,
-                        address = null,
-                        profileImageUrl = null,
-                        accountType = request.accountType,
-                        location = request.location,
-                        createdAt = now,
-                        updatedAt = now
-                    )
+            UserRole.CUSTOMER -> customerProfileRepository.save(
+                CustomerProfile(
+                    id = UUID.randomUUID(),
+                    userId = user.id,
+                    fullName = request.fullName,
+                    phone = request.phone,
+                    address = null,
+                    profileImageUrl = null,
+                    accountType = request.accountType,
+                    location = request.location,
+                    createdAt = now,
+                    updatedAt = now
                 )
-                region = null
-            }
-            else -> {
-                agentProfileRepository.save(
-                    AgentProfile(
-                        id = UUID.randomUUID(),
-                        userId = user.id,
-                        fullName = request.fullName,
-                        agentCode = generateAgentCode(agentProfileJpaRepository),
-                        region = request.region,
-                        createdAt = now,
-                        updatedAt = now
-                    )
+            )
+            else -> agentProfileRepository.save(
+                AgentProfile(
+                    id = UUID.randomUUID(),
+                    userId = user.id,
+                    fullName = request.fullName,
+                    agentCode = generateAgentCode(agentProfileJpaRepository),
+                    region = request.region,
+                    createdAt = now,
+                    updatedAt = now
                 )
-                region = request.region
-            }
+            )
         }
 
         val accessToken = jwtService.generateAccessToken(user.id, user.email, user.role.name)
@@ -98,19 +90,6 @@ class RegisterUseCase(
         refreshTokenRepository.save(user.id, refreshToken, jwtProperties.refreshTokenExpiration)
 
         return AuthResponse(
-            user = AuthUserDto(
-                id = user.id.toString(),
-                email = user.email,
-                firstName = request.fullName.substringBefore(" ").ifBlank { request.fullName },
-                lastName = request.fullName.substringAfter(" ", ""),
-                fullName = request.fullName,
-                phone = user.phone,
-                role = user.role.value,
-                status = "active",
-                region = region,
-                createdAt = user.createdAt,
-                updatedAt = user.updatedAt
-            ),
             accessToken = accessToken,
             refreshToken = refreshToken,
             expiresIn = jwtProperties.accessTokenExpiration / 1000

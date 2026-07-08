@@ -47,7 +47,6 @@ data class AuthUserDto(
 )
 
 data class AuthResponse(
-    val user: AuthUserDto,
     val accessToken: String,
     val refreshToken: String,
     val tokenType: String = "Bearer",

@@ -13,14 +13,22 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/customer/profile")
+@RequestMapping("/customer")
 @PreAuthorize("hasRole('CUSTOMER')")
 class CustomerController(
     private val getCustomerProfileUseCase: GetCustomerProfileUseCase,
     private val updateCustomerProfileUseCase: UpdateCustomerProfileUseCase
 ) {
 
-    @GetMapping
+    @GetMapping("/me")
+    fun getMe(
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<CustomerProfileDto>> {
+        val data = getCustomerProfileUseCase.execute(principal.id)
+        return ResponseEntity.ok(ApiResponse.success(data))
+    }
+
+    @GetMapping("/profile")
     fun getProfile(
         @AuthenticationPrincipal principal: UserPrincipal
     ): ResponseEntity<ApiResponse<CustomerProfileDto>> {
@@ -28,7 +36,7 @@ class CustomerController(
         return ResponseEntity.ok(ApiResponse.success(data))
     }
 
-    @PutMapping
+    @PutMapping("/profile")
     fun updateProfile(
         @Valid @RequestBody request: UpdateCustomerProfileRequest,
         @AuthenticationPrincipal principal: UserPrincipal
