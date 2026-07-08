@@ -12,6 +12,7 @@ data class Farm(
     val location: String?,
     val latitude: Double?,
     val longitude: Double?,
+    val photos: List<String> = emptyList(),
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )

@@ -1,14 +1,22 @@
 package com.soiltech.backend.interfaces.controller
 
 import com.soiltech.backend.application.dto.agent.*
+import com.soiltech.backend.application.dto.farm.FarmDto
+import com.soiltech.backend.application.dto.farmer.FarmerResponse
 import com.soiltech.backend.application.usecase.agent.*
 import com.soiltech.backend.infrastructure.security.UserPrincipal
+import com.soiltech.backend.infrastructure.service.CloudinaryService
 import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
+import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import java.util.UUID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/agent")
@@ -17,7 +25,11 @@ class AgentDashboardController(
     private val dashboardUseCase: AgentDashboardUseCase,
     private val profileUseCase: AgentMobileProfileUseCase,
     private val activitiesUseCase: AgentActivitiesUseCase,
-    private val getFarmersUseCase: GetAgentFarmersUseCase
+    private val getFarmersUseCase: GetAgentFarmersUseCase,
+    private val getFarmerUseCase: GetAgentFarmerUseCase,
+    private val registerFarmerUseCase: RegisterFarmerByAgentUseCase,
+    private val registerFarmUseCase: RegisterFarmByAgentUseCase,
+    private val cloudinaryService: CloudinaryService
 ) {
 
     @GetMapping("/dashboard")
@@ -38,6 +50,38 @@ class AgentDashboardController(
         @RequestParam(defaultValue = "10") limit: Int
     ): ResponseEntity<ApiResponse<List<AgentActivityResponse>>> =
         ResponseEntity.ok(ApiResponse.success(activitiesUseCase.execute(principal.id, limit)))
+
+    @PostMapping("/farms", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun registerFarm(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestPart("data") request: RegisterFarmByAgentRequest,
+        @RequestPart("photos", required = false) photos: List<MultipartFile>?
+    ): ResponseEntity<ApiResponse<FarmDto>> {
+        val photoUrls = photos
+            ?.filter { !it.isEmpty }
+            ?.map { cloudinaryService.uploadImage(it, "soiltech/farms") }
+            ?: emptyList()
+        val data = registerFarmUseCase.execute(principal.id, request, photoUrls)
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.created(data, "Farm registered successfully"))
+    }
+
+    @PostMapping("/farmers")
+    fun registerFarmer(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @Valid @RequestBody request: RegisterFarmerByAgentRequest
+    ): ResponseEntity<ApiResponse<FarmerResponse>> {
+        val data = registerFarmerUseCase.execute(principal.id, request)
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.created(data, "Farmer registered successfully"))
+    }
+
+    @GetMapping("/farmers/{id}")
+    fun getFarmer(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable id: UUID
+    ): ResponseEntity<ApiResponse<FarmerResponse>> =
+        ResponseEntity.ok(ApiResponse.success(getFarmerUseCase.execute(principal.id, id)))
 
     @GetMapping("/farmers")
     fun getFarmers(

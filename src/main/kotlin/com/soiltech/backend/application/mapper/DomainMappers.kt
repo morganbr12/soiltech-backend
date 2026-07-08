@@ -17,7 +17,7 @@ import com.soiltech.backend.domain.entity.*
 fun Farm.toDto() = FarmDto(
     id = id, farmerId = farmerId, name = name, sizeHectares = sizeHectares,
     cropType = cropType, location = location, latitude = latitude,
-    longitude = longitude, createdAt = createdAt, updatedAt = updatedAt
+    longitude = longitude, photos = photos, createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun ProduceRecord.toDto() = ProduceRecordDto(

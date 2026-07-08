@@ -32,6 +32,7 @@ class FarmRepositoryAdapter(
             location = farm.location
             latitude = farm.latitude
             longitude = farm.longitude
+            photosRaw = farm.photos.joinToString(",").takeIf { it.isNotEmpty() }
         }
         return jpaRepository.save(entity).toDomain()
     }

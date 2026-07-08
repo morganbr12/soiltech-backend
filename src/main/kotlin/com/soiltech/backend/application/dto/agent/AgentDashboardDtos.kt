@@ -57,3 +57,47 @@ data class AgentFarmerSummaryResponse(
     val status: String,
     val kycVerified: Boolean
 )
+
+data class RegisterFarmByAgentRequest(
+    @field:jakarta.validation.constraints.NotNull(message = "Farmer ID is required")
+    val farmerId: UUID,
+
+    @field:jakarta.validation.constraints.NotBlank(message = "Farm name is required")
+    val name: String,
+
+    @field:jakarta.validation.constraints.Positive(message = "Size must be positive")
+    val sizeHectares: Double? = null,
+
+    val cropType: String? = null,
+    val location: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)
+
+data class RegisterFarmerByAgentRequest(
+    @field:jakarta.validation.constraints.NotBlank(message = "First name is required")
+    val firstName: String,
+
+    @field:jakarta.validation.constraints.NotBlank(message = "Last name is required")
+    val lastName: String,
+
+    @field:jakarta.validation.constraints.NotBlank(message = "Phone is required")
+    @field:jakarta.validation.constraints.Pattern(regexp = "^\\+?[0-9]{7,15}\$", message = "Invalid phone number")
+    val phone: String,
+
+    @field:jakarta.validation.constraints.Email(message = "Invalid email address")
+    val email: String? = null,
+
+    val nationalId: String? = null,
+
+    @field:jakarta.validation.constraints.NotBlank(message = "Region is required")
+    val region: String,
+
+    @field:jakarta.validation.constraints.NotBlank(message = "District is required")
+    val district: String,
+
+    val cropTypes: List<String> = emptyList(),
+
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)

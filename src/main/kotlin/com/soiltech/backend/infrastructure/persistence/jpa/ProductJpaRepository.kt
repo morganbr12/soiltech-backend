@@ -16,8 +16,9 @@ interface ProductJpaRepository : JpaRepository<ProductJpaEntity, UUID> {
         SELECT p FROM ProductJpaEntity p
         WHERE p.isAvailable = true
           AND (:categoryId IS NULL OR p.categoryId = :categoryId)
-          AND (:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
-               OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')))
+          AND (cast(:query as String) IS NULL
+               OR LOWER(p.name) LIKE LOWER(CONCAT('%', cast(:query as String), '%'))
+               OR LOWER(p.description) LIKE LOWER(CONCAT('%', cast(:query as String), '%')))
         ORDER BY p.createdAt DESC
     """)
     fun findAllFiltered(

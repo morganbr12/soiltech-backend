@@ -28,7 +28,10 @@ class FarmJpaEntity(
     var location: String? = null,
 
     var latitude: Double? = null,
-    var longitude: Double? = null
+    var longitude: Double? = null,
+
+    @Column(name = "photos", columnDefinition = "text")
+    var photosRaw: String? = null
 ) : BaseJpaEntity() {
 
 
@@ -41,6 +44,7 @@ class FarmJpaEntity(
         location = location,
         latitude = latitude,
         longitude = longitude,
+        photos = photosRaw?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -54,7 +58,8 @@ class FarmJpaEntity(
             cropType = farm.cropType,
             location = farm.location,
             latitude = farm.latitude,
-            longitude = farm.longitude
+            longitude = farm.longitude,
+            photosRaw = farm.photos.joinToString(",").takeIf { it.isNotEmpty() }
         )
     }
 }

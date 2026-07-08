@@ -1,14 +1,23 @@
 package com.soiltech.backend.application.usecase.agent
 
 import com.soiltech.backend.application.dto.agent.*
+import com.soiltech.backend.application.dto.farm.FarmDto
+import com.soiltech.backend.application.dto.farmer.FarmerResponse
+import com.soiltech.backend.application.mapper.toDto
+import com.soiltech.backend.domain.entity.Farm
+import com.soiltech.backend.domain.entity.Farmer
+import com.soiltech.backend.domain.entity.FarmerMetrics
+import com.soiltech.backend.domain.repository.FarmRepository
 import com.soiltech.backend.domain.enum.FarmerStatus
 import com.soiltech.backend.domain.repository.*
 import com.soiltech.backend.infrastructure.persistence.jpa.FarmJpaRepository
+import com.soiltech.backend.interfaces.exception.ConflictException
 import com.soiltech.backend.interfaces.exception.NotFoundException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.DayOfWeek
@@ -295,6 +304,192 @@ class GetAgentFarmersUseCase(
                 kycVerified = farmer.kycVerified
             )
         }
+    }
+}
+
+// ── Agent registers a farm for a farmer ──────────────────────────────────────
+
+@Service
+class RegisterFarmByAgentUseCase(
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository,
+    private val farmerRepository: FarmerRepository,
+    private val farmRepository: FarmRepository
+) {
+    @Transactional
+    fun execute(userId: UUID, request: RegisterFarmByAgentRequest, photoUrls: List<String> = emptyList()): FarmDto {
+        val agentId = resolveAgentId(userId, agentProfileRepository, agentRepository)
+
+        val farmer = farmerRepository.findById(request.farmerId)
+            ?: throw NotFoundException("Farmer not found")
+        if (farmer.agentId != agentId)
+            throw NotFoundException("Farmer not found")
+
+        val now = LocalDateTime.now()
+        val farm = farmRepository.save(
+            Farm(
+                id = UUID.randomUUID(),
+                farmerId = farmer.id,
+                name = request.name,
+                sizeHectares = request.sizeHectares,
+                cropType = request.cropType,
+                location = request.location,
+                latitude = request.latitude,
+                longitude = request.longitude,
+                photos = photoUrls,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        return farm.toDto()
+    }
+}
+
+// ── Agent fetches a single farmer ─────────────────────────────────────────────
+
+@Service
+class GetAgentFarmerUseCase(
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository,
+    private val farmerRepository: FarmerRepository
+) {
+    fun execute(userId: UUID, farmerId: UUID): FarmerResponse {
+        val agentId = resolveAgentId(userId, agentProfileRepository, agentRepository)
+        val farmer = farmerRepository.findById(farmerId)
+            ?: throw NotFoundException("Farmer not found")
+        if (farmer.agentId != agentId)
+            throw NotFoundException("Farmer not found")
+
+        val metrics = farmerRepository.findMetricsByFarmerIds(listOf(farmerId))[farmerId]
+            ?: com.soiltech.backend.domain.entity.FarmerMetrics()
+
+        return FarmerResponse(
+            id = farmer.id,
+            farmerCode = farmer.farmerCode,
+            firstName = farmer.firstName,
+            lastName = farmer.lastName,
+            fullName = "${farmer.firstName} ${farmer.lastName}",
+            phone = farmer.phone,
+            email = farmer.email,
+            nationalId = farmer.nationalId,
+            agentId = farmer.agentId,
+            agentName = farmer.agentName,
+            lbcId = farmer.lbcId,
+            lbcName = farmer.lbcName,
+            region = farmer.region,
+            district = farmer.district,
+            farmsCount = metrics.farmsCount,
+            totalFarmSize = metrics.totalFarmSize,
+            cropTypes = metrics.cropTypes.ifEmpty { farmer.cropTypes },
+            walletBalance = metrics.walletBalance,
+            totalEarnings = metrics.totalEarnings,
+            kycVerified = farmer.kycVerified,
+            status = farmer.status,
+            rejectionReason = farmer.rejectionReason,
+            lat = farmer.latitude,
+            lng = farmer.longitude,
+            joinedDate = farmer.joinedDate,
+            createdAt = farmer.createdAt,
+            updatedAt = farmer.updatedAt
+        )
+    }
+}
+
+// ── Agent registers a farmer ──────────────────────────────────────────────────
+
+@Service
+class RegisterFarmerByAgentUseCase(
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository,
+    private val farmerRepository: FarmerRepository,
+    private val lbcRepository: LbcRepository
+) {
+    @Transactional
+    fun execute(userId: UUID, request: RegisterFarmerByAgentRequest): FarmerResponse {
+        val profile = agentProfileRepository.findByUserId(userId)
+            ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found for code: ${profile.agentCode}")
+        val lbc = lbcRepository.findById(agent.lbcId)
+            ?: throw NotFoundException("LBC not found for agent")
+
+        if (farmerRepository.existsByPhone(request.phone))
+            throw ConflictException("A farmer with phone '${request.phone}' already exists")
+        request.nationalId?.let {
+            if (farmerRepository.existsByNationalId(it))
+                throw ConflictException("A farmer with national ID '$it' already exists")
+        }
+
+        val farmerCode = generateUniqueCode(farmerRepository)
+        val now = LocalDateTime.now()
+
+        val farmer = farmerRepository.save(
+            Farmer(
+                id = UUID.randomUUID(),
+                farmerCode = farmerCode,
+                firstName = request.firstName,
+                lastName = request.lastName,
+                phone = request.phone,
+                email = request.email,
+                nationalId = request.nationalId,
+                agentId = agent.id,
+                agentName = "${agent.firstName} ${agent.lastName}",
+                lbcId = lbc.id,
+                lbcName = lbc.name,
+                region = request.region,
+                district = request.district,
+                status = FarmerStatus.PENDING,
+                kycVerified = false,
+                latitude = request.latitude,
+                longitude = request.longitude,
+                cropTypes = request.cropTypes,
+                rejectionReason = null,
+                joinedDate = now,
+                createdAt = now,
+                updatedAt = now,
+                createdBy = null,
+                updatedBy = null
+            )
+        )
+
+        return FarmerResponse(
+            id = farmer.id,
+            farmerCode = farmer.farmerCode,
+            firstName = farmer.firstName,
+            lastName = farmer.lastName,
+            fullName = "${farmer.firstName} ${farmer.lastName}",
+            phone = farmer.phone,
+            email = farmer.email,
+            nationalId = farmer.nationalId,
+            agentId = farmer.agentId,
+            agentName = farmer.agentName,
+            lbcId = farmer.lbcId,
+            lbcName = farmer.lbcName,
+            region = farmer.region,
+            district = farmer.district,
+            farmsCount = 0L,
+            totalFarmSize = 0.0,
+            cropTypes = farmer.cropTypes,
+            walletBalance = BigDecimal.ZERO,
+            totalEarnings = BigDecimal.ZERO,
+            kycVerified = false,
+            status = farmer.status,
+            rejectionReason = null,
+            lat = farmer.latitude,
+            lng = farmer.longitude,
+            joinedDate = farmer.joinedDate,
+            createdAt = farmer.createdAt,
+            updatedAt = farmer.updatedAt
+        )
+    }
+
+    private fun generateUniqueCode(repo: FarmerRepository): String {
+        var num = (repo.countAll() + 1).toInt()
+        var code: String
+        do {
+            code = "FMR-${String.format("%05d", num++)}"
+        } while (repo.existsByFarmerCode(code))
+        return code
     }
 }
 
