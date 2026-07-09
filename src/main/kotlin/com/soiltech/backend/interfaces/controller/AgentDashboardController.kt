@@ -123,7 +123,7 @@ class AgentDashboardController(
         @RequestParam(name = "farmer_id", required = false) farmerId: UUID?,
         @RequestParam(required = false) status: CollectionStatus?
     ): ResponseEntity<ApiResponse<List<ProduceRecordDto>>> {
-        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, status, page, perPage)
+        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, status, null, page, perPage)
         return ResponseEntity.ok(ApiResponse.success(records, meta = meta))
     }
 

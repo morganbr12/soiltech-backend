@@ -5,6 +5,7 @@ import com.soiltech.backend.application.dto.produce.ProduceRecordDto
 import com.soiltech.backend.application.dto.produce.UpdateProduceRecordRequest
 import com.soiltech.backend.application.usecase.produce.*
 import com.soiltech.backend.domain.enum.CollectionStatus
+import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.infrastructure.service.CloudinaryService
 import com.soiltech.backend.interfaces.response.ApiResponse
@@ -61,10 +62,19 @@ class ProduceController(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(name = "per_page", defaultValue = "20") perPage: Int,
         @RequestParam(name = "farmer_id", required = false) farmerId: UUID?,
-        @RequestParam(required = false) status: CollectionStatus?,
+        @RequestParam(required = false) status: String?,
+        @RequestParam(name = "listing_status", required = false) listingStatusParam: String?,
         @AuthenticationPrincipal principal: UserPrincipal
     ): ResponseEntity<ApiResponse<List<ProduceRecordDto>>> {
-        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, status, page, perPage)
+        val collectionStatus = status?.let {
+            runCatching { CollectionStatus.valueOf(it.uppercase()) }.getOrNull()
+        }
+        // Flutter sends status=APPROVED meaning the listing was approved (AVAILABLE)
+        val listingStatus = listingStatusParam?.let {
+            runCatching { ProduceListingStatus.valueOf(it.uppercase()) }.getOrNull()
+        } ?: if (status?.uppercase() == "APPROVED") ProduceListingStatus.AVAILABLE else null
+
+        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, collectionStatus, listingStatus, page, perPage)
         return ResponseEntity.ok(ApiResponse.success(records, meta = meta))
     }
 

@@ -196,6 +196,7 @@ class ListProduceRecordsUseCase(
         userId: UUID,
         farmerId: UUID?,
         status: CollectionStatus?,
+        listingStatus: ProduceListingStatus? = null,
         page: Int,
         perPage: Int
     ): Pair<List<ProduceRecordDto>, PaginationMeta> {
@@ -206,11 +207,16 @@ class ListProduceRecordsUseCase(
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
         val result = produceRecordRepository.findAll(agent.id, farmerId, status, pageable)
 
-        val listingStatusMap = produceListingRepository
+        val listingsByRecordId = produceListingRepository
             .findByProduceRecordIds(result.content.map { it.id })
             .associateBy { it.produceRecordId }
 
-        return result.content.map { it.toDto(listingStatusMap[it.id]?.status) } to PaginationMeta.from(result, page, perPage)
+        var records = result.content.map { it.toDto(listingsByRecordId[it.id]?.status) }
+        if (listingStatus != null) {
+            records = records.filter { it.listingStatus == listingStatus }
+        }
+
+        return records to PaginationMeta.from(result, page, perPage)
     }
 }
 
