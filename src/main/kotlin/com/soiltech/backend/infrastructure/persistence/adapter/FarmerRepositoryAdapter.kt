@@ -131,6 +131,7 @@ class FarmerRepositoryAdapter(
                 lbcId = farmer.lbcId
                 region = farmer.region
                 district = farmer.district
+                community = farmer.community
                 status = farmer.status
                 kycVerified = farmer.kycVerified
                 latitude = farmer.latitude
@@ -155,6 +156,7 @@ class FarmerRepositoryAdapter(
                     lbcId = farmer.lbcId,
                     region = farmer.region,
                     district = farmer.district,
+                    community = farmer.community,
                     status = farmer.status,
                     kycVerified = farmer.kycVerified,
                     latitude = farmer.latitude,

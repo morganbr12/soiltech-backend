@@ -25,6 +25,7 @@ data class FarmerResponse(
     val lbcName: String,
     val region: String,
     val district: String,
+    val community: String,
     val farmsCount: Long,
     val totalFarmSize: Double,
     val cropTypes: List<String>,
@@ -69,8 +70,8 @@ data class RegisterFarmerRequest(
     @field:NotNull(message = "LBC ID is required")
     val lbcId: UUID,
 
-    @field:NotBlank(message = "Region is required")
-    val region: String,
+    @field:NotBlank(message = "Community is required")
+    val community: String,
 
     @field:NotBlank(message = "District is required")
     val district: String,
@@ -97,7 +98,7 @@ data class UpdateFarmerRequest(
 
     val lbcId: UUID? = null,
 
-    val region: String? = null,
+    val community: String? = null,
 
     val district: String? = null,
 
