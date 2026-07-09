@@ -4,6 +4,7 @@ import com.soiltech.backend.domain.entity.Farmer
 import com.soiltech.backend.domain.entity.FarmerMetrics
 import com.soiltech.backend.domain.enum.FarmerStatus
 import com.soiltech.backend.domain.repository.FarmerRepository
+import com.soiltech.backend.domain.repository.RegionalSummary
 import com.soiltech.backend.infrastructure.persistence.entity.FarmerJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.AgentJpaRepository
 import com.soiltech.backend.infrastructure.persistence.jpa.FarmerJpaRepository
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -264,4 +266,20 @@ class FarmerRepositoryAdapter(
         is String -> runCatching { UUID.fromString(value) }.getOrNull()
         else -> null
     }
+
+    override fun findRegionalOverview(): List<RegionalSummary> =
+        jpaRepository.findRegionalOverview().map {
+            RegionalSummary(
+                region = it.getRegion(),
+                farmers = it.getFarmers(),
+                produce = it.getProduce().toDouble(),
+                revenue = it.getRevenue()
+            )
+        }
+
+    override fun findRecentGlobal(limit: Int): List<Farmer> =
+        jpaRepository.findTop5ByOrderByCreatedAtDesc().take(limit).map { it.toDomain() }
+
+    override fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long =
+        jpaRepository.countByCreatedAtBetween(from, to)
 }

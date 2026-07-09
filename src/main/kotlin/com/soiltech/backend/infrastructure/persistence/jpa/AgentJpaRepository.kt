@@ -35,4 +35,6 @@ interface AgentJpaRepository : JpaRepository<AgentJpaEntity, UUID>, JpaSpecifica
     fun sumProduceByAgentIds(@Param("ids") ids: List<UUID>): List<Array<Any>>
 
     fun findByAgentCode(agentCode: String): AgentJpaEntity?
+
+    fun countByCreatedAtBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
 }

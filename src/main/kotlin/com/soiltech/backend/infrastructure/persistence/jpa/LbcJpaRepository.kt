@@ -25,4 +25,6 @@ interface LbcJpaRepository : JpaRepository<LbcJpaEntity, UUID>, JpaSpecification
 
     @Query("SELECT l.status, COUNT(l) FROM LbcJpaEntity l GROUP BY l.status")
     fun countGroupByStatus(): List<Array<Any>>
+
+    fun countByCreatedAtBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
 }

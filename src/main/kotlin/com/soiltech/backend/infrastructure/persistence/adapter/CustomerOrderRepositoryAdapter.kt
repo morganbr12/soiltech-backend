@@ -12,8 +12,10 @@ import com.soiltech.backend.infrastructure.persistence.jpa.CustomerOrderJpaRepos
 import com.soiltech.backend.infrastructure.persistence.jpa.OrderItemJpaRepository
 import com.soiltech.backend.infrastructure.persistence.jpa.OrderTimelineJpaRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 import java.util.UUID
 
 @Component
@@ -55,4 +57,24 @@ class CustomerOrderRepositoryAdapter(
         entity.status = status
         return orderJpaRepository.save(entity).toDomain()
     }
+
+    override fun countAll(): Long = orderJpaRepository.count()
+
+    override fun sumTotalAmount(): BigDecimal = orderJpaRepository.sumTotalAmount()
+
+    override fun findRecent(limit: Int): List<CustomerOrder> =
+        orderJpaRepository.findRecentOrders(PageRequest.of(0, limit)).map { it.toDomain() }
+
+    override fun sumMonthlyRevenue(year: Int): List<BigDecimal> {
+        val rows = orderJpaRepository.findMonthlyRevenue(year).associate { it.getMonth() to it.getRevenue() }
+        return (1..12).map { month -> rows[month] ?: BigDecimal.ZERO }
+    }
+
+    override fun findTopSpenders(limit: Int): List<Triple<UUID, Long, BigDecimal>> =
+        orderJpaRepository.findTopSpenders(limit).map {
+            Triple(it.getCustomerId(), it.getOrderCount(), it.getTotalSpent())
+        }
+
+    override fun sumAmountBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): BigDecimal =
+        orderJpaRepository.sumAmountBetween(from, to)
 }

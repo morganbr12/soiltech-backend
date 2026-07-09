@@ -7,6 +7,9 @@ data class OrderItem(
     val id: UUID,
     val orderId: UUID,
     val productId: UUID,
+    val productName: String?,
+    val agentName: String?,
+    val region: String?,
     val quantity: Int,
     val unitPrice: BigDecimal,
     val subtotal: BigDecimal

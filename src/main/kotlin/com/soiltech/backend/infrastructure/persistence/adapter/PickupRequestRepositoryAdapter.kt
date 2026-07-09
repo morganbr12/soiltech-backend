@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -44,4 +45,15 @@ class PickupRequestRepositoryAdapter(
     override fun findRecentByAgent(agentId: UUID, limit: Int): List<PickupRequest> =
         jpaRepository.findRecentByAgent(agentId, PageRequest.of(0, limit.coerceIn(1, 50)))
             .map { it.toDomain() }
+
+    override fun countByStatusAll(): Map<LogisticsStatus, Long> {
+        val rows = jpaRepository.countGroupByStatus()
+        return rows.associate { row -> (row[0] as LogisticsStatus) to (row[1] as Long) }
+    }
+
+    override fun countByStatusSince(status: LogisticsStatus, since: LocalDateTime): Long =
+        jpaRepository.countByStatusSince(status, since)
+
+    override fun countDistinctAgentsByStatus(status: LogisticsStatus): Long =
+        jpaRepository.countDistinctAgentsByStatus(status)
 }

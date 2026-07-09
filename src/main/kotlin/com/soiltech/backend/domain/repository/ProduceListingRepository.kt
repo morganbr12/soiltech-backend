@@ -23,4 +23,15 @@ interface ProduceListingRepository {
         pageable: Pageable
     ): Page<ProduceListing>
     fun updateAvailableQuantity(id: UUID, availableQuantityKg: BigDecimal, status: ProduceListingStatus): ProduceListing
+
+    // Admin
+    fun findAllAdmin(
+        status: ProduceListingStatus?,
+        cropType: String?,
+        region: String?,
+        search: String?,
+        pageable: org.springframework.data.domain.Pageable
+    ): org.springframework.data.domain.Page<ProduceListing>
+    fun findRecent(limit: Int): List<ProduceListing>
+    fun computeFillRate(): Double
 }

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -172,4 +173,7 @@ class AgentRepositoryAdapter(
         is String -> runCatching { UUID.fromString(value) }.getOrNull()
         else -> null
     }
+
+    override fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long =
+        jpaRepository.countByCreatedAtBetween(from, to)
 }

@@ -17,4 +17,7 @@ interface PaymentRecordRepository {
     fun sumMonthlyRevenueByAgent(agentId: UUID, monthStart: LocalDateTime, monthEnd: LocalDateTime): BigDecimal
     fun findRecentByAgent(agentId: UUID, limit: Int): List<PaymentRecord>
     fun countRecentByAgent(agentId: UUID, since: LocalDateTime): Long
+
+    // Admin dashboard
+    fun sumAmountByStatus(status: PaymentStatus): BigDecimal
 }

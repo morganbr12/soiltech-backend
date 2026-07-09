@@ -13,6 +13,11 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
+interface MonthlyCollectionProjection {
+    fun getMonth(): Int
+    fun getTotalKg(): BigDecimal
+}
+
 @Repository
 interface ProduceRecordJpaRepository : JpaRepository<ProduceRecordJpaEntity, UUID> {
 
@@ -92,4 +97,29 @@ interface ProduceRecordJpaRepository : JpaRepository<ProduceRecordJpaEntity, UUI
 
     @Query("SELECT p FROM ProduceRecordJpaEntity p WHERE p.agentId = :agentId ORDER BY p.createdAt DESC")
     fun findRecentByAgent(@Param("agentId") agentId: UUID, pageable: Pageable): List<ProduceRecordJpaEntity>
+
+    // ── Admin dashboard ──────────────────────────────────────────────────────
+
+    @Query("SELECT COALESCE(SUM(p.quantityKg), 0) FROM ProduceRecordJpaEntity p WHERE p.createdAt >= :from AND p.createdAt < :to")
+    fun sumQuantityKgBetween(
+        @Param("from") from: LocalDateTime,
+        @Param("to") to: LocalDateTime
+    ): BigDecimal
+
+    @Query(
+        value = """
+            SELECT EXTRACT(MONTH FROM created_at)::int AS month,
+                   COALESCE(SUM(quantity_kg), 0) AS total_kg
+            FROM produce_records
+            WHERE EXTRACT(YEAR FROM created_at) = :year
+              AND LOWER(crop_type) LIKE :cropKeyword
+            GROUP BY EXTRACT(MONTH FROM created_at)
+            ORDER BY month
+        """,
+        nativeQuery = true
+    )
+    fun findMonthlyCropCollection(
+        @Param("year") year: Int,
+        @Param("cropKeyword") cropKeyword: String
+    ): List<MonthlyCollectionProjection>
 }

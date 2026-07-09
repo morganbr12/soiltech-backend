@@ -8,9 +8,11 @@ import java.util.UUID
 data class CustomerOrder(
     val id: UUID,
     val customerId: UUID,
+    val customerName: String?,
     val status: OrderStatus,
     val totalAmount: BigDecimal,
     val deliveryAddress: String,
+    val paymentType: String?,
     val notes: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime

@@ -13,6 +13,9 @@ import java.util.UUID
 data class OrderItemDto(
     val id: UUID,
     val productId: UUID,
+    val productName: String?,
+    val agentName: String?,
+    val region: String?,
     val quantity: Int,
     val unitPrice: BigDecimal,
     val subtotal: BigDecimal
@@ -29,9 +32,11 @@ data class OrderTimelineDto(
 data class CustomerOrderDto(
     val id: UUID,
     val customerId: UUID,
+    val customerName: String?,
     val status: OrderStatus,
     val totalAmount: BigDecimal,
     val deliveryAddress: String,
+    val paymentType: String?,
     val notes: String?,
     val items: List<OrderItemDto>,
     val timeline: List<OrderTimelineDto>,
@@ -42,9 +47,11 @@ data class CustomerOrderDto(
 data class CustomerOrderListDto(
     val id: UUID,
     val customerId: UUID,
+    val customerName: String?,
     val status: OrderStatus,
     val totalAmount: BigDecimal,
     val deliveryAddress: String,
+    val paymentType: String?,
     val itemCount: Int,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
@@ -62,6 +69,7 @@ data class PlaceOrderRequest(
     val deliveryAddress: String,
     @field:NotEmpty @field:Valid
     val items: List<OrderItemRequest>,
+    val paymentType: String? = null,
     val notes: String? = null
 )
 

@@ -11,4 +11,6 @@ interface FarmRepository {
     fun save(farm: Farm): Farm
     fun update(farm: Farm): Farm
     fun delete(id: UUID)
+    fun countAll(): Long
+    fun countCreatedBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
 }

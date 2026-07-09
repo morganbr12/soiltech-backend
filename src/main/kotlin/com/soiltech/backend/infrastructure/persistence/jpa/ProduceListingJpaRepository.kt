@@ -16,6 +16,33 @@ interface ProduceListingJpaRepository : JpaRepository<ProduceListingJpaEntity, U
 
     fun findByProduceRecordId(produceRecordId: UUID): ProduceListingJpaEntity?
 
+    fun findTop7ByOrderByCreatedAtDesc(): List<ProduceListingJpaEntity>
+
+    @Query("""
+        SELECT p FROM ProduceListingJpaEntity p
+        WHERE (:status IS NULL OR p.status = :status)
+          AND (cast(:cropType as String) IS NULL OR LOWER(p.cropType) = LOWER(cast(:cropType as String)))
+          AND (cast(:region as String) IS NULL OR LOWER(p.region) = LOWER(cast(:region as String)))
+          AND (cast(:search as String) IS NULL
+               OR LOWER(p.cropType) LIKE LOWER(CONCAT('%', cast(:search as String), '%'))
+               OR LOWER(p.agentName) LIKE LOWER(CONCAT('%', cast(:search as String), '%'))
+               OR LOWER(p.farmerName) LIKE LOWER(CONCAT('%', cast(:search as String), '%')))
+        ORDER BY p.createdAt DESC
+    """)
+    fun findAllAdmin(
+        @Param("status") status: ProduceListingStatus?,
+        @Param("cropType") cropType: String?,
+        @Param("region") region: String?,
+        @Param("search") search: String?,
+        pageable: Pageable
+    ): Page<ProduceListingJpaEntity>
+
+    @Query(
+        value = "SELECT COALESCE(SUM(total_quantity_kg - available_quantity_kg), 0) / NULLIF(SUM(total_quantity_kg), 0) * 100 FROM produce_listings",
+        nativeQuery = true
+    )
+    fun computeFillRatePercent(): Double?
+
     @Query("""
         SELECT p FROM ProduceListingJpaEntity p
         WHERE p.status = :status

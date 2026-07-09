@@ -13,6 +13,8 @@ import java.util.UUID
 interface FarmJpaRepository : JpaRepository<FarmJpaEntity, UUID> {
     fun findByFarmerId(farmerId: UUID, pageable: Pageable): Page<FarmJpaEntity>
 
+    fun countByCreatedAtBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
+
     @Query("""
         SELECT fm FROM FarmJpaEntity fm
         WHERE fm.farmerId IN (SELECT f.id FROM FarmerJpaEntity f WHERE f.agentId = :agentId)

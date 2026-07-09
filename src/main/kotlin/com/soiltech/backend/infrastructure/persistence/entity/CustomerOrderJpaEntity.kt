@@ -21,6 +21,9 @@ class CustomerOrderJpaEntity(
     @Column(nullable = false)
     val customerId: UUID,
 
+    @Column(length = 255)
+    var customerName: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     var status: OrderStatus = OrderStatus.PENDING,
@@ -31,17 +34,21 @@ class CustomerOrderJpaEntity(
     @Column(nullable = false, length = 1000)
     var deliveryAddress: String,
 
+    @Column(length = 50)
+    var paymentType: String? = null,
+
     @Column(length = 1000)
     var notes: String? = null
 ) : BaseJpaEntity() {
 
-
     fun toDomain(): CustomerOrder = CustomerOrder(
         id = id!!,
         customerId = customerId,
+        customerName = customerName,
         status = status,
         totalAmount = totalAmount,
         deliveryAddress = deliveryAddress,
+        paymentType = paymentType,
         notes = notes,
         createdAt = createdAt,
         updatedAt = updatedAt
@@ -51,9 +58,11 @@ class CustomerOrderJpaEntity(
         fun fromDomain(order: CustomerOrder): CustomerOrderJpaEntity = CustomerOrderJpaEntity(
             id = order.id,
             customerId = order.customerId,
+            customerName = order.customerName,
             status = order.status,
             totalAmount = order.totalAmount,
             deliveryAddress = order.deliveryAddress,
+            paymentType = order.paymentType,
             notes = order.notes
         )
     }

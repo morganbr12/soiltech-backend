@@ -5,6 +5,7 @@ import com.soiltech.backend.domain.entity.AgentMetrics
 import com.soiltech.backend.domain.enum.AgentStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface AgentRepository {
@@ -20,4 +21,5 @@ interface AgentRepository {
     fun existsByPhoneAndIdNot(phone: String, id: UUID): Boolean
     fun existsByAgentCode(code: String): Boolean
     fun findByAgentCode(agentCode: String): Agent?
+    fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long
 }

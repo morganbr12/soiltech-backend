@@ -52,4 +52,9 @@ interface PaymentRecordJpaRepository : JpaRepository<PaymentRecordJpaEntity, UUI
         @Param("agentId") agentId: UUID,
         @Param("since") since: LocalDateTime
     ): Long
+
+    // ── Admin dashboard ──────────────────────────────────────────────────────
+
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM PaymentRecordJpaEntity p WHERE p.status = :status")
+    fun sumAmountByStatus(@Param("status") status: PaymentStatus): BigDecimal
 }

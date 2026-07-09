@@ -26,4 +26,8 @@ interface ProduceRecordRepository {
     fun countCollectedByAgent(agentId: UUID): Long
     fun sumTotalWeightByAgent(agentId: UUID): BigDecimal
     fun findRecentByAgent(agentId: UUID, limit: Int): List<ProduceRecord>
+
+    // Admin dashboard
+    fun sumQuantityKgBetween(from: LocalDateTime, to: LocalDateTime): BigDecimal
+    fun findMonthlyCropCollection(year: Int, cropKeyword: String): List<Pair<Int, BigDecimal>>
 }

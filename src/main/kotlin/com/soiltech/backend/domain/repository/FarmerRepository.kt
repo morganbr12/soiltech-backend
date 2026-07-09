@@ -5,7 +5,16 @@ import com.soiltech.backend.domain.entity.FarmerMetrics
 import com.soiltech.backend.domain.enum.FarmerStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
+
+data class RegionalSummary(
+    val region: String,
+    val farmers: Long,
+    val produce: Double,
+    val revenue: BigDecimal
+)
 
 interface FarmerRepository {
     fun findById(id: UUID): Farmer?
@@ -34,4 +43,9 @@ interface FarmerRepository {
     fun countApprovedByAgentId(agentId: UUID): Long
     fun findRecentByAgent(agentId: UUID, limit: Int): List<Farmer>
     fun findByIds(ids: List<UUID>): List<Farmer>
+
+    // Admin dashboard
+    fun findRegionalOverview(): List<RegionalSummary>
+    fun findRecentGlobal(limit: Int): List<Farmer>
+    fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long
 }

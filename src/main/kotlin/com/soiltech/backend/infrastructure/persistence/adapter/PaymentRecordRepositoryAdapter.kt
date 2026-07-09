@@ -36,4 +36,7 @@ class PaymentRecordRepositoryAdapter(
 
     override fun countRecentByAgent(agentId: UUID, since: LocalDateTime): Long =
         jpaRepository.countRecentByAgent(agentId, since)
+
+    override fun sumAmountByStatus(status: PaymentStatus): java.math.BigDecimal =
+        jpaRepository.sumAmountByStatus(status)
 }

@@ -1,12 +1,14 @@
 package com.soiltech.backend.infrastructure.persistence.jpa
 
 import com.soiltech.backend.infrastructure.persistence.entity.FarmerJpaEntity
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
 import java.util.UUID
 
 @Repository
@@ -64,4 +66,33 @@ interface FarmerJpaRepository : JpaRepository<FarmerJpaEntity, UUID>, JpaSpecifi
 
     @Query("SELECT f FROM FarmerJpaEntity f WHERE f.agentId = :agentId ORDER BY f.createdAt DESC")
     fun findRecentByAgentId(@Param("agentId") agentId: UUID, pageable: Pageable): List<FarmerJpaEntity>
+
+    // ── Admin dashboard ──────────────────────────────────────────────────────
+
+    fun findTop5ByOrderByCreatedAtDesc(): List<FarmerJpaEntity>
+
+    fun countByCreatedAtBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
+
+    @Query(
+        value = """
+            SELECT f.region AS region,
+                   COUNT(DISTINCT f.id) AS farmers,
+                   COALESCE(SUM(pl.total_quantity_kg) / 1000.0, 0) AS produce,
+                   COALESCE(SUM(pl.total_quantity_kg * pl.price_per_kg), 0) AS revenue
+            FROM farmers f
+            LEFT JOIN produce_listings pl ON f.region = pl.region
+            WHERE f.region IS NOT NULL
+            GROUP BY f.region
+            ORDER BY revenue DESC
+        """,
+        nativeQuery = true
+    )
+    fun findRegionalOverview(): List<RegionalOverviewProjection>
+}
+
+interface RegionalOverviewProjection {
+    fun getRegion(): String
+    fun getFarmers(): Long
+    fun getProduce(): BigDecimal
+    fun getRevenue(): BigDecimal
 }

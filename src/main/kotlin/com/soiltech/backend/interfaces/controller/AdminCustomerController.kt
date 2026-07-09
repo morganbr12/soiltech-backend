@@ -57,6 +57,13 @@ class AdminCustomerController(
             .body(ApiResponse.created(data, "Customer created successfully"))
     }
 
+    @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:analytics')")
+    fun dashboard(): ResponseEntity<ApiResponse<CustomerDashboardResponse>> {
+        val data = customerDashboardUseCase.execute()
+        return ResponseEntity.ok(ApiResponse.success(data))
+    }
+
     @GetMapping("/dashboard/summary")
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:analytics')")
     fun dashboardSummary(): ResponseEntity<ApiResponse<CustomerDashboardResponse>> {

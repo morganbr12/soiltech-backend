@@ -16,6 +16,24 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
+class ListProduceListingsAdminUseCase(
+    private val produceListingRepository: ProduceListingRepository
+) {
+    fun execute(
+        status: ProduceListingStatus?,
+        cropType: String?,
+        region: String?,
+        search: String?,
+        page: Int,
+        perPage: Int
+    ): Pair<List<ProduceListingDto>, PaginationMeta> {
+        val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
+        val result = produceListingRepository.findAllAdmin(status, cropType, region, search, pageable)
+        return result.content.map { it.toDto() } to PaginationMeta.from(result, page, perPage)
+    }
+}
+
+@Service
 class GetProduceListingsUseCase(
     private val produceListingRepository: ProduceListingRepository
 ) {

@@ -20,6 +20,15 @@ class OrderItemJpaEntity(
     @Column(nullable = false)
     val productId: UUID,
 
+    @Column(length = 255)
+    val productName: String? = null,
+
+    @Column(length = 255)
+    val agentName: String? = null,
+
+    @Column(length = 255)
+    val region: String? = null,
+
     @Column(nullable = false)
     val quantity: Int,
 
@@ -33,6 +42,9 @@ class OrderItemJpaEntity(
         id = id!!,
         orderId = orderId,
         productId = productId,
+        productName = productName,
+        agentName = agentName,
+        region = region,
         quantity = quantity,
         unitPrice = unitPrice,
         subtotal = subtotal
@@ -43,6 +55,9 @@ class OrderItemJpaEntity(
             id = item.id,
             orderId = item.orderId,
             productId = item.productId,
+            productName = item.productName,
+            agentName = item.agentName,
+            region = item.region,
             quantity = item.quantity,
             unitPrice = item.unitPrice,
             subtotal = item.subtotal

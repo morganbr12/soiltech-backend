@@ -71,8 +71,9 @@ fun ProductReview.toDto() = ProductReviewDto(
 )
 
 fun OrderItem.toDto() = OrderItemDto(
-    id = id, productId = productId, quantity = quantity,
-    unitPrice = unitPrice, subtotal = subtotal
+    id = id, productId = productId, productName = productName,
+    agentName = agentName, region = region,
+    quantity = quantity, unitPrice = unitPrice, subtotal = subtotal
 )
 
 fun OrderTimeline.toDto() = OrderTimelineDto(
@@ -80,17 +81,19 @@ fun OrderTimeline.toDto() = OrderTimelineDto(
 )
 
 fun CustomerOrder.toDto(items: List<OrderItem>, timeline: List<OrderTimeline>) = CustomerOrderDto(
-    id = id, customerId = customerId, status = status, totalAmount = totalAmount,
-    deliveryAddress = deliveryAddress, notes = notes,
+    id = id, customerId = customerId, customerName = customerName,
+    status = status, totalAmount = totalAmount,
+    deliveryAddress = deliveryAddress, paymentType = paymentType, notes = notes,
     items = items.map { it.toDto() },
     timeline = timeline.map { it.toDto() },
     createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun CustomerOrder.toListDto(itemCount: Int) = CustomerOrderListDto(
-    id = id, customerId = customerId, status = status, totalAmount = totalAmount,
-    deliveryAddress = deliveryAddress, itemCount = itemCount,
-    createdAt = createdAt, updatedAt = updatedAt
+    id = id, customerId = customerId, customerName = customerName,
+    status = status, totalAmount = totalAmount,
+    deliveryAddress = deliveryAddress, paymentType = paymentType,
+    itemCount = itemCount, createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun CustomerProfile.toDto() = CustomerProfileDto(

@@ -331,43 +331,44 @@ class ActivateCustomerUseCase(private val customerProfileRepository: CustomerPro
 @Service
 class CustomerDashboardUseCase(
     private val customerProfileRepository: CustomerProfileRepository,
-    private val customerProduceOrderRepository: CustomerProduceOrderRepository
+    private val customerOrderRepository: com.soiltech.backend.domain.repository.CustomerOrderRepository
 ) {
     fun execute(): CustomerDashboardResponse {
         val statusCounts = customerProfileRepository.countByStatus()
         val tierCounts = customerProfileRepository.countByTier()
-        val totalOrders = customerProduceOrderRepository.countAll()
-        val totalRevenue = customerProduceOrderRepository.sumTotalValue()
+        val totalOrders = customerOrderRepository.countAll()
+        val totalRevenue = customerOrderRepository.sumTotalAmount()
         val avgRating = customerProfileRepository.avgRating()
 
-        val topProfiles = customerProfileRepository.findTopCustomers(5)
-        val topCustomerIds = topProfiles.map { it.id }
-        val topMetrics = customerProfileRepository.findMetricsByCustomerIds(topCustomerIds)
-        val topCustomers = topProfiles.map { p ->
-            val m = topMetrics[p.id] ?: com.soiltech.backend.domain.entity.CustomerMetrics()
+        val year = Year.now().value
+
+        val topSpenders = customerOrderRepository.findTopSpenders(7)
+        val topCustomers = topSpenders.mapNotNull { (customerId, orderCount, totalSpent) ->
+            val profile = customerProfileRepository.findById(customerId) ?: return@mapNotNull null
             TopCustomerDto(
-                id = p.id,
-                customerCode = p.customerCode ?: "",
-                fullName = p.fullName,
-                region = p.region,
-                totalOrders = m.totalOrders,
-                totalSpent = m.totalSpent
+                id = profile.id,
+                customerCode = profile.customerCode ?: "",
+                fullName = profile.fullName,
+                region = profile.region,
+                totalOrders = orderCount,
+                totalSpent = totalSpent
             )
         }
 
-        val year = Year.now().value
         val monthlyGrowth = customerProfileRepository.countMonthlyNewCustomers(year)
-        val monthlyRevenue = customerProduceOrderRepository.sumMonthlyRevenue(year)
+        val monthlyRevenue = customerOrderRepository.sumMonthlyRevenue(year)
 
-        val recentOrders = customerProduceOrderRepository.findRecentOrders(5).map { o ->
+        val recentOrders = customerOrderRepository.findRecent(7).map { order ->
+            val items = customerOrderRepository.findItemsByOrderId(order.id)
+            val produce = items.firstOrNull()?.productName ?: "N/A"
             RecentOrderDto(
-                id = o.id,
-                orderCode = o.orderCode,
-                customerId = o.customerId,
-                customerName = o.customerName,
-                produce = o.produce,
-                totalAmount = o.totalAmount,
-                status = o.status.value
+                id = order.id,
+                orderCode = order.id.toString().take(8).uppercase(),
+                customerId = order.customerId,
+                customerName = order.customerName ?: "Unknown",
+                produce = produce,
+                totalAmount = order.totalAmount,
+                status = order.status.value
             )
         }
 

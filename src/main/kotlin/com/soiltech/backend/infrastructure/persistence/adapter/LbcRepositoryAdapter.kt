@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -115,4 +116,7 @@ class LbcRepositoryAdapter(
 
             cb.and(*predicates.toTypedArray())
         }
+
+    override fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long =
+        jpaRepository.countByCreatedAtBetween(from, to)
 }

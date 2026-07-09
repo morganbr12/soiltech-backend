@@ -1,13 +1,15 @@
 package com.soiltech.backend.interfaces.controller
 
 import com.soiltech.backend.application.dto.customer.*
+import com.soiltech.backend.application.dto.order.CustomerOrderDto
 import com.soiltech.backend.application.dto.order.CustomerOrderListDto
+import com.soiltech.backend.application.dto.order.UpdateOrderStatusRequest
 import com.soiltech.backend.application.mapper.toListDto
-import com.soiltech.backend.application.usecase.customer.*
+import com.soiltech.backend.application.usecase.customer.CreateProduceOrderUseCase
+import com.soiltech.backend.application.usecase.order.UpdateOrderStatusUseCase
 import com.soiltech.backend.domain.enum.OrderStatus
-import com.soiltech.backend.domain.enum.ProduceOrderStatus
-import com.soiltech.backend.domain.enum.ProducePaymentStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
+import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
 import jakarta.validation.Valid
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
@@ -24,9 +27,7 @@ import java.util.UUID
 class CustomerOrderAdminController(
     private val customerOrderRepository: CustomerOrderRepository,
     private val createProduceOrderUseCase: CreateProduceOrderUseCase,
-    private val confirmOrderUseCase: ConfirmOrderUseCase,
-    private val cancelOrderUseCase: CancelOrderUseCase,
-    private val deliverOrderUseCase: DeliverOrderUseCase
+    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase
 ) {
 
     @GetMapping
@@ -63,8 +64,11 @@ class CustomerOrderAdminController(
 
     @PatchMapping("/{orderId}/confirm")
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:orders')")
-    fun confirm(@PathVariable orderId: UUID): ResponseEntity<ApiResponse<ProduceOrderResponse>> {
-        val data = confirmOrderUseCase.execute(orderId)
+    fun confirm(
+        @PathVariable orderId: UUID,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<CustomerOrderDto>> {
+        val data = updateOrderStatusUseCase.execute(orderId, UpdateOrderStatusRequest(OrderStatus.CONFIRMED), principal.id)
         return ResponseEntity.ok(ApiResponse.success(data, "Order confirmed"))
     }
 
@@ -72,16 +76,24 @@ class CustomerOrderAdminController(
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:orders')")
     fun cancel(
         @PathVariable orderId: UUID,
-        @RequestBody(required = false) request: CancelOrderRequest?
-    ): ResponseEntity<ApiResponse<ProduceOrderResponse>> {
-        val data = cancelOrderUseCase.execute(orderId, request ?: CancelOrderRequest())
+        @RequestBody(required = false) request: CancelOrderRequest?,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<CustomerOrderDto>> {
+        val data = updateOrderStatusUseCase.execute(
+            orderId,
+            UpdateOrderStatusRequest(OrderStatus.CANCELLED, request?.reason),
+            principal.id
+        )
         return ResponseEntity.ok(ApiResponse.success(data, "Order cancelled"))
     }
 
     @PatchMapping("/{orderId}/deliver")
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:orders')")
-    fun deliver(@PathVariable orderId: UUID): ResponseEntity<ApiResponse<ProduceOrderResponse>> {
-        val data = deliverOrderUseCase.execute(orderId)
+    fun deliver(
+        @PathVariable orderId: UUID,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<CustomerOrderDto>> {
+        val data = updateOrderStatusUseCase.execute(orderId, UpdateOrderStatusRequest(OrderStatus.DELIVERED), principal.id)
         return ResponseEntity.ok(ApiResponse.success(data, "Order marked as delivered"))
     }
 }

@@ -78,4 +78,11 @@ class ProduceRecordRepositoryAdapter(
     override fun findRecentByAgent(agentId: UUID, limit: Int): List<ProduceRecord> =
         jpaRepository.findRecentByAgent(agentId, PageRequest.of(0, limit.coerceIn(1, 50)))
             .map { it.toDomain() }
+
+    override fun sumQuantityKgBetween(from: LocalDateTime, to: LocalDateTime): BigDecimal =
+        jpaRepository.sumQuantityKgBetween(from, to)
+
+    override fun findMonthlyCropCollection(year: Int, cropKeyword: String): List<Pair<Int, BigDecimal>> =
+        jpaRepository.findMonthlyCropCollection(year, cropKeyword)
+            .map { it.getMonth() to it.getTotalKg() }
 }

@@ -3,6 +3,7 @@ package com.soiltech.backend.infrastructure.persistence.jpa
 import com.soiltech.backend.domain.enum.LogisticsStatus
 import com.soiltech.backend.infrastructure.persistence.entity.PickupRequestJpaEntity
 import org.springframework.data.domain.Page
+import java.time.LocalDateTime
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -35,4 +36,18 @@ interface PickupRequestJpaRepository : JpaRepository<PickupRequestJpaEntity, UUI
 
     @Query("SELECT p FROM PickupRequestJpaEntity p WHERE p.agentId = :agentId ORDER BY p.createdAt DESC")
     fun findRecentByAgent(@Param("agentId") agentId: UUID, pageable: Pageable): List<PickupRequestJpaEntity>
+
+    // ── Admin dashboard ──────────────────────────────────────────────────────
+
+    @Query("SELECT p.status, COUNT(p) FROM PickupRequestJpaEntity p GROUP BY p.status")
+    fun countGroupByStatus(): List<Array<Any>>
+
+    @Query("SELECT COUNT(p) FROM PickupRequestJpaEntity p WHERE p.status = :status AND p.updatedAt >= :since")
+    fun countByStatusSince(
+        @Param("status") status: LogisticsStatus,
+        @Param("since") since: LocalDateTime
+    ): Long
+
+    @Query("SELECT COUNT(DISTINCT p.agentId) FROM PickupRequestJpaEntity p WHERE p.status = :status")
+    fun countDistinctAgentsByStatus(@Param("status") status: LogisticsStatus): Long
 }

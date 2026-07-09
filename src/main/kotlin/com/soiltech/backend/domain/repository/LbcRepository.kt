@@ -4,6 +4,7 @@ import com.soiltech.backend.domain.entity.Lbc
 import com.soiltech.backend.domain.enum.LbcStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface LbcRepository {
@@ -19,4 +20,5 @@ interface LbcRepository {
     fun existsByEmail(email: String): Boolean
     fun existsByCodeAndIdNot(code: String, id: UUID): Boolean
     fun existsByEmailAndIdNot(email: String, id: UUID): Boolean
+    fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long
 }

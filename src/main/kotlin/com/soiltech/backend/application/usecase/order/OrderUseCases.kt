@@ -9,6 +9,7 @@ import com.soiltech.backend.domain.entity.OrderTimeline
 import com.soiltech.backend.domain.enum.OrderStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
 import com.soiltech.backend.domain.repository.CustomerProfileRepository
+import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.domain.repository.ProductRepository
 import com.soiltech.backend.interfaces.exception.BadRequestException
 import com.soiltech.backend.interfaces.exception.ForbiddenException
@@ -28,6 +29,7 @@ class PlaceOrderUseCase(
     private val customerOrderRepository: CustomerOrderRepository,
     private val customerProfileRepository: CustomerProfileRepository,
     private val productRepository: ProductRepository,
+    private val produceListingRepository: ProduceListingRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
     @Transactional
@@ -45,10 +47,14 @@ class PlaceOrderUseCase(
             if (product.stockQuantity < itemReq.quantity) {
                 throw BadRequestException("Insufficient stock for product '${product.name}'")
             }
+            val listing = product.produceListingId?.let { produceListingRepository.findById(it) }
             OrderItem(
                 id = UUID.randomUUID(),
                 orderId = orderId,
                 productId = product.id,
+                productName = product.name,
+                agentName = listing?.agentName,
+                region = product.location,
                 quantity = itemReq.quantity,
                 unitPrice = product.pricePerUnit,
                 subtotal = product.pricePerUnit.multiply(BigDecimal(itemReq.quantity))
@@ -61,9 +67,11 @@ class PlaceOrderUseCase(
             CustomerOrder(
                 id = orderId,
                 customerId = customer.id,
+                customerName = customer.fullName,
                 status = OrderStatus.PENDING,
                 totalAmount = totalAmount,
                 deliveryAddress = request.deliveryAddress,
+                paymentType = request.paymentType,
                 notes = request.notes,
                 createdAt = now,
                 updatedAt = now

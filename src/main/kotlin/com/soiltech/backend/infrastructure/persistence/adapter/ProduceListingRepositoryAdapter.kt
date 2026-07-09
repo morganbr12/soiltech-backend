@@ -6,6 +6,7 @@ import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.infrastructure.persistence.entity.ProduceListingJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.ProduceListingJpaRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -51,4 +52,19 @@ class ProduceListingRepositoryAdapter(
         entity.status = status
         return jpaRepository.save(entity).toDomain()
     }
+
+    override fun findAllAdmin(
+        status: ProduceListingStatus?,
+        cropType: String?,
+        region: String?,
+        search: String?,
+        pageable: Pageable
+    ): Page<ProduceListing> =
+        jpaRepository.findAllAdmin(status, cropType, region, search, pageable).map { it.toDomain() }
+
+    override fun findRecent(limit: Int): List<ProduceListing> =
+        jpaRepository.findTop7ByOrderByCreatedAtDesc().take(limit).map { it.toDomain() }
+
+    override fun computeFillRate(): Double =
+        jpaRepository.computeFillRatePercent() ?: 0.0
 }

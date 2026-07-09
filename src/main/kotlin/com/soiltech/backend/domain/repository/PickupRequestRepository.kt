@@ -4,6 +4,7 @@ import com.soiltech.backend.domain.entity.PickupRequest
 import com.soiltech.backend.domain.enum.LogisticsStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface PickupRequestRepository {
@@ -15,4 +16,9 @@ interface PickupRequestRepository {
     // Dashboard aggregates
     fun countActiveByAgent(agentId: UUID): Long
     fun findRecentByAgent(agentId: UUID, limit: Int): List<PickupRequest>
+
+    // Admin dashboard
+    fun countByStatusAll(): Map<LogisticsStatus, Long>
+    fun countByStatusSince(status: LogisticsStatus, since: LocalDateTime): Long
+    fun countDistinctAgentsByStatus(status: LogisticsStatus): Long
 }

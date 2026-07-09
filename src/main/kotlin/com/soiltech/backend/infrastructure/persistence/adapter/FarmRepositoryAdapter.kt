@@ -7,6 +7,7 @@ import com.soiltech.backend.infrastructure.persistence.jpa.FarmJpaRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
@@ -38,4 +39,9 @@ class FarmRepositoryAdapter(
     }
 
     override fun delete(id: UUID) = jpaRepository.deleteById(id)
+
+    override fun countAll(): Long = jpaRepository.count()
+
+    override fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long =
+        jpaRepository.countByCreatedAtBetween(from, to)
 }
