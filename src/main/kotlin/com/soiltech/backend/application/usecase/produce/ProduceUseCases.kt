@@ -4,11 +4,14 @@ import com.soiltech.backend.application.dto.produce.CreateProduceRecordRequest
 import com.soiltech.backend.application.dto.produce.ProduceRecordDto
 import com.soiltech.backend.application.dto.produce.UpdateProduceRecordRequest
 import com.soiltech.backend.application.mapper.toDto
+import com.soiltech.backend.domain.entity.ProduceListing
 import com.soiltech.backend.domain.entity.ProduceRecord
 import com.soiltech.backend.domain.enum.CollectionStatus
+import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.domain.enum.SyncStatus
 import com.soiltech.backend.domain.repository.AgentProfileRepository
 import com.soiltech.backend.domain.repository.FarmerRepository
+import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.domain.repository.ProduceRecordRepository
 import com.soiltech.backend.interfaces.exception.ForbiddenException
 import com.soiltech.backend.interfaces.exception.NotFoundException
@@ -26,6 +29,7 @@ class CreateProduceRecordUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
     private val farmerRepository: FarmerRepository,
     private val agentProfileRepository: AgentProfileRepository,
+    private val produceListingRepository: ProduceListingRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
     @Transactional
@@ -45,6 +49,8 @@ class CreateProduceRecordUseCase(
                 farmId = request.farmId,
                 agentId = agent.id,
                 cropType = request.cropType,
+                cropVariety = request.cropVariety,
+                grade = request.grade,
                 quantityKg = request.quantityKg,
                 pricePerKg = request.pricePerKg,
                 totalAmount = totalAmount,
@@ -52,6 +58,32 @@ class CreateProduceRecordUseCase(
                 collectedAt = request.collectedAt,
                 notes = request.notes,
                 syncStatus = SyncStatus.SYNCED,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+
+        produceListingRepository.save(
+            ProduceListing(
+                id = UUID.randomUUID(),
+                produceRecordId = record.id,
+                farmerId = record.farmerId,
+                farmId = record.farmId,
+                agentId = record.agentId,
+                lbcId = farmer.lbcId,
+                cropType = record.cropType,
+                cropVariety = record.cropVariety,
+                grade = record.grade,
+                totalQuantityKg = record.quantityKg,
+                availableQuantityKg = record.quantityKg,
+                pricePerKg = record.pricePerKg,
+                status = ProduceListingStatus.AVAILABLE,
+                region = farmer.region,
+                district = farmer.district,
+                agentName = agent.fullName,
+                farmerName = "${farmer.firstName} ${farmer.lastName}",
+                lbcName = farmer.lbcName,
+                collectedAt = record.collectedAt,
                 createdAt = now,
                 updatedAt = now
             )

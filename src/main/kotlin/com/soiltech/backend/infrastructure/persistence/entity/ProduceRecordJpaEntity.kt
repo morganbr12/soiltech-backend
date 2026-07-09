@@ -32,6 +32,12 @@ class ProduceRecordJpaEntity(
     @Column(nullable = false, length = 100)
     var cropType: String,
 
+    @Column(length = 100)
+    var cropVariety: String? = null,
+
+    @Column(length = 50)
+    var grade: String? = null,
+
     @Column(nullable = false, precision = 10, scale = 3)
     var quantityKg: BigDecimal,
 
@@ -62,6 +68,8 @@ class ProduceRecordJpaEntity(
         farmId = farmId,
         agentId = agentId,
         cropType = cropType,
+        cropVariety = cropVariety,
+        grade = grade,
         quantityKg = quantityKg,
         pricePerKg = pricePerKg,
         totalAmount = totalAmount,
@@ -80,6 +88,8 @@ class ProduceRecordJpaEntity(
             farmId = record.farmId,
             agentId = record.agentId,
             cropType = record.cropType,
+            cropVariety = record.cropVariety,
+            grade = record.grade,
             quantityKg = record.quantityKg,
             pricePerKg = record.pricePerKg,
             totalAmount = record.totalAmount,

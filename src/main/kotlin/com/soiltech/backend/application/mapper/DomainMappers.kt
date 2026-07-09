@@ -8,6 +8,7 @@ import com.soiltech.backend.application.dto.order.CustomerOrderListDto
 import com.soiltech.backend.application.dto.order.OrderItemDto
 import com.soiltech.backend.application.dto.order.OrderTimelineDto
 import com.soiltech.backend.application.dto.payment.PaymentRecordDto
+import com.soiltech.backend.application.dto.produce.ProduceListingDto
 import com.soiltech.backend.application.dto.produce.ProduceRecordDto
 import com.soiltech.backend.application.dto.product.ProductCategoryDto
 import com.soiltech.backend.application.dto.product.ProductDto
@@ -22,9 +23,19 @@ fun Farm.toDto() = FarmDto(
 
 fun ProduceRecord.toDto() = ProduceRecordDto(
     id = id, farmerId = farmerId, farmId = farmId, agentId = agentId,
-    cropType = cropType, quantityKg = quantityKg, pricePerKg = pricePerKg,
+    cropType = cropType, cropVariety = cropVariety, grade = grade,
+    quantityKg = quantityKg, pricePerKg = pricePerKg,
     totalAmount = totalAmount, status = status, collectedAt = collectedAt,
     notes = notes, syncStatus = syncStatus, createdAt = createdAt, updatedAt = updatedAt
+)
+
+fun ProduceListing.toDto() = ProduceListingDto(
+    id = id, produceRecordId = produceRecordId, cropType = cropType,
+    cropVariety = cropVariety, grade = grade, totalQuantityKg = totalQuantityKg,
+    availableQuantityKg = availableQuantityKg, pricePerKg = pricePerKg,
+    status = status, region = region, district = district,
+    agentName = agentName, farmerName = farmerName, lbcName = lbcName,
+    collectedAt = collectedAt, createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun PickupRequest.toDto() = PickupRequestDto(

@@ -38,6 +38,8 @@ class ProduceRecordRepositoryAdapter(
             quantityKg = record.quantityKg
             pricePerKg = record.pricePerKg
             totalAmount = record.totalAmount
+            cropVariety = record.cropVariety
+            grade = record.grade
         }
         return jpaRepository.save(entity).toDomain()
     }

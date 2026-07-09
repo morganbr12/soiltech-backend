@@ -15,6 +15,8 @@ data class ProduceRecordDto(
     val farmId: UUID?,
     val agentId: UUID,
     val cropType: String,
+    val cropVariety: String?,
+    val grade: String?,
     val quantityKg: BigDecimal,
     val pricePerKg: BigDecimal,
     val totalAmount: BigDecimal,
@@ -32,6 +34,8 @@ data class CreateProduceRecordRequest(
     val farmId: UUID? = null,
     @field:NotBlank
     val cropType: String,
+    val cropVariety: String? = null,
+    val grade: String? = null,
     @field:NotNull @field:DecimalMin("0.001")
     val quantityKg: BigDecimal,
     @field:NotNull @field:DecimalMin("0.01")
