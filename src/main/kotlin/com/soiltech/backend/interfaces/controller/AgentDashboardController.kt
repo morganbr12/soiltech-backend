@@ -9,6 +9,7 @@ import com.soiltech.backend.application.usecase.agent.*
 import com.soiltech.backend.application.usecase.produce.CreateProduceRecordUseCase
 import com.soiltech.backend.application.usecase.produce.ListProduceRecordsUseCase
 import com.soiltech.backend.domain.enum.CollectionStatus
+import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.infrastructure.service.CloudinaryService
 import com.soiltech.backend.interfaces.response.ApiResponse
@@ -121,9 +122,17 @@ class AgentDashboardController(
         @RequestParam(defaultValue = "1") page: Int,
         @RequestParam(name = "per_page", defaultValue = "20") perPage: Int,
         @RequestParam(name = "farmer_id", required = false) farmerId: UUID?,
-        @RequestParam(required = false) status: CollectionStatus?
+        @RequestParam(required = false) status: String?,
+        @RequestParam(name = "listing_status", required = false) listingStatusParam: String?
     ): ResponseEntity<ApiResponse<List<ProduceRecordDto>>> {
-        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, status, null, page, perPage)
+        val collectionStatus = status?.let {
+            runCatching { CollectionStatus.valueOf(it.uppercase()) }.getOrNull()
+        }
+        val listingStatus = listingStatusParam?.let {
+            runCatching { ProduceListingStatus.valueOf(it.uppercase()) }.getOrNull()
+        } ?: if (status?.uppercase() == "APPROVED") ProduceListingStatus.AVAILABLE else null
+
+        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, collectionStatus, listingStatus, page, perPage)
         return ResponseEntity.ok(ApiResponse.success(records, meta = meta))
     }
 
