@@ -52,8 +52,8 @@ class FarmerJpaEntity(
     @Column(nullable = false, length = 100)
     var district: String,
 
-    @Column(nullable = false, length = 150)
-    var community: String = "",
+    @Column(length = 150)
+    var community: String? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "varchar(20)")
@@ -99,7 +99,7 @@ class FarmerJpaEntity(
         lbcName = lbcName,
         region = region,
         district = district,
-        community = community,
+        community = community ?: "",
         status = status,
         kycVerified = kycVerified,
         latitude = latitude,
