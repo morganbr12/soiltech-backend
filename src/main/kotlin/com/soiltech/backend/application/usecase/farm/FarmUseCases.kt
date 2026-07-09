@@ -28,7 +28,7 @@ class CreateFarmUseCase(
     private val agentRepository: AgentRepository
 ) {
     @Transactional
-    fun execute(farmerId: UUID, request: CreateFarmRequest, userId: UUID): FarmDto {
+    fun execute(farmerId: UUID, request: CreateFarmRequest, userId: UUID, photoUrls: List<String> = emptyList()): FarmDto {
         val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
         val agent = agentRepository.findByAgentCode(profile.agentCode)
@@ -50,6 +50,7 @@ class CreateFarmUseCase(
                 longitude = request.longitude,
                 estimatedYieldKg = request.estimatedYieldKg,
                 lastHarvestDate = request.lastHarvestDate,
+                photos = photoUrls,
                 createdAt = now,
                 updatedAt = now
             )
