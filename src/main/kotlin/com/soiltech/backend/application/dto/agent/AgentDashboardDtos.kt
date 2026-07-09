@@ -90,8 +90,8 @@ data class RegisterFarmerByAgentRequest(
 
     val nationalId: String? = null,
 
-    @field:jakarta.validation.constraints.NotBlank(message = "Region is required")
-    val region: String,
+    @field:jakarta.validation.constraints.NotBlank(message = "Community is required")
+    val community: String,
 
     @field:jakarta.validation.constraints.NotBlank(message = "District is required")
     val district: String,

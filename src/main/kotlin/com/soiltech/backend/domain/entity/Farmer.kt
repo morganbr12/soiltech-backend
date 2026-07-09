@@ -19,6 +19,7 @@ data class Farmer(
     val lbcName: String,
     val region: String,
     val district: String,
+    val community: String,
     val status: FarmerStatus,
     val kycVerified: Boolean,
     val latitude: Double?,
