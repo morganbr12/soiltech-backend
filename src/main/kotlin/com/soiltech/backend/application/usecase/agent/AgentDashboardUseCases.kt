@@ -336,6 +336,8 @@ class RegisterFarmByAgentUseCase(
                 location = request.location,
                 latitude = request.latitude,
                 longitude = request.longitude,
+                estimatedYieldKg = null,
+                lastHarvestDate = null,
                 photos = photoUrls,
                 createdAt = now,
                 updatedAt = now
