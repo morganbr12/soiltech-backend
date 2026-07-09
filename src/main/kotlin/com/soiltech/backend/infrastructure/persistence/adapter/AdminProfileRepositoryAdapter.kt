@@ -1,10 +1,13 @@
 package com.soiltech.backend.infrastructure.persistence.adapter
 
 import com.soiltech.backend.domain.entity.AdminProfile
+import com.soiltech.backend.domain.enum.AdminRoleName
 import com.soiltech.backend.domain.repository.AdminProfileRepository
 import com.soiltech.backend.infrastructure.persistence.entity.AdminProfileJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.AdminProfileJpaRepository
 import com.soiltech.backend.infrastructure.persistence.jpa.AdminRoleJpaRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
 import java.util.UUID
 
@@ -54,4 +57,7 @@ class AdminProfileRepositoryAdapter(
 
     override fun findAll(): List<AdminProfile> =
         profileJpaRepository.findAll().map { it.toDomain() }
+
+    override fun findAllFiltered(role: AdminRoleName?, isActive: Boolean?, search: String?, pageable: Pageable): Page<AdminProfile> =
+        profileJpaRepository.findAllFiltered(role, isActive, search, pageable).map { it.toDomain() }
 }

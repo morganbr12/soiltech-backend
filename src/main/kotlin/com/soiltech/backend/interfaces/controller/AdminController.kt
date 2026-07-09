@@ -4,6 +4,7 @@ import com.soiltech.backend.application.dto.admin.AdminProfileDto
 import com.soiltech.backend.application.dto.admin.AdminRoleDto
 import com.soiltech.backend.application.dto.admin.AssignAdminRoleRequest
 import com.soiltech.backend.application.dto.admin.CreateAdminRequest
+import com.soiltech.backend.domain.enum.AdminRoleName
 import com.soiltech.backend.application.usecase.admin.AssignAdminRoleUseCase
 import com.soiltech.backend.application.usecase.admin.CreateAdminUserUseCase
 import com.soiltech.backend.application.usecase.admin.GetAdminProfileUseCase
@@ -56,8 +57,16 @@ class AdminController(
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('users:view')")
-    fun listAdminUsers(): ResponseEntity<ApiResponse<List<AdminProfileDto>>> =
-        ResponseEntity.ok(ApiResponse.success(listAdminUsersUseCase.execute()))
+    fun listAdminUsers(
+        @RequestParam(required = false) role: AdminRoleName?,
+        @RequestParam(name = "is_active", required = false) isActive: Boolean?,
+        @RequestParam(required = false) search: String?,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(name = "per_page", defaultValue = "20") perPage: Int
+    ): ResponseEntity<ApiResponse<List<AdminProfileDto>>> {
+        val (users, meta) = listAdminUsersUseCase.execute(role, isActive, search, page, perPage)
+        return ResponseEntity.ok(ApiResponse.success(users, meta = meta))
+    }
 
     @PostMapping("/users")
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('users:create')")

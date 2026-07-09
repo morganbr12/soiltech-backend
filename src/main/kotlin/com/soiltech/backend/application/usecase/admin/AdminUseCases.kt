@@ -117,10 +117,19 @@ class ListAdminUsersUseCase(
     private val adminProfileRepository: AdminProfileRepository,
     private val userRepository: UserRepository
 ) {
-    fun execute(): List<AdminProfileDto> {
-        val profiles = adminProfileRepository.findAll()
-        val userMap = profiles.mapNotNull { userRepository.findById(it.userId) }.associateBy { it.id }
-        return profiles.map { profile ->
+    fun execute(
+        role: com.soiltech.backend.domain.enum.AdminRoleName?,
+        isActive: Boolean?,
+        search: String?,
+        page: Int,
+        perPage: Int
+    ): Pair<List<AdminProfileDto>, com.soiltech.backend.interfaces.response.PaginationMeta> {
+        val pageable = org.springframework.data.domain.PageRequest.of(
+            page - 1, perPage, org.springframework.data.domain.Sort.by("createdAt").descending()
+        )
+        val result = adminProfileRepository.findAllFiltered(role, isActive, search, pageable)
+        val userMap = result.content.mapNotNull { userRepository.findById(it.userId) }.associateBy { it.id }
+        val dtos = result.content.map { profile ->
             val user = userMap[profile.userId]
             profile.toDto(
                 phone = profile.phone ?: user?.phone ?: "",
@@ -134,6 +143,7 @@ class ListAdminUsersUseCase(
                 )
             )
         }
+        return dtos to com.soiltech.backend.interfaces.response.PaginationMeta.from(result, page, perPage)
     }
 }
 
