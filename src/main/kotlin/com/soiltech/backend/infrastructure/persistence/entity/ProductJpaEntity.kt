@@ -49,6 +49,9 @@ class ProductJpaEntity(
     @Column(nullable = false)
     var isFeatured: Boolean = false,
 
+    @Column(unique = true)
+    var produceListingId: UUID? = null,
+
     @Column(precision = 12, scale = 2)
     var originalPrice: BigDecimal? = null,
 
@@ -72,6 +75,7 @@ class ProductJpaEntity(
     fun toDomain(): Product = Product(
         id = id!!,
         categoryId = categoryId,
+        produceListingId = produceListingId,
         name = name,
         description = description,
         pricePerUnit = pricePerUnit,
@@ -95,6 +99,7 @@ class ProductJpaEntity(
         fun fromDomain(product: Product): ProductJpaEntity = ProductJpaEntity(
             id = product.id,
             categoryId = product.categoryId,
+            produceListingId = product.produceListingId,
             name = product.name,
             description = product.description,
             pricePerUnit = product.pricePerUnit,

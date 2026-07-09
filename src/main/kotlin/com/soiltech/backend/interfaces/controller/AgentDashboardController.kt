@@ -7,6 +7,8 @@ import com.soiltech.backend.application.dto.produce.CreateProduceRecordRequest
 import com.soiltech.backend.application.dto.produce.ProduceRecordDto
 import com.soiltech.backend.application.usecase.agent.*
 import com.soiltech.backend.application.usecase.produce.CreateProduceRecordUseCase
+import com.soiltech.backend.application.usecase.produce.ListProduceRecordsUseCase
+import com.soiltech.backend.domain.enum.CollectionStatus
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.infrastructure.service.CloudinaryService
 import com.soiltech.backend.interfaces.response.ApiResponse
@@ -34,6 +36,7 @@ class AgentDashboardController(
     private val registerFarmerUseCase: RegisterFarmerByAgentUseCase,
     private val registerFarmUseCase: RegisterFarmByAgentUseCase,
     private val createProduceRecordUseCase: CreateProduceRecordUseCase,
+    private val listProduceRecordsUseCase: ListProduceRecordsUseCase,
     private val cloudinaryService: CloudinaryService
 ) {
 
@@ -110,6 +113,18 @@ class AgentDashboardController(
         val data = createProduceRecordUseCase.execute(request, principal.id, photoUrls)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.created(data, "Produce record created"))
+    }
+
+    @GetMapping("/produce-records")
+    fun listProduceRecords(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(name = "per_page", defaultValue = "20") perPage: Int,
+        @RequestParam(name = "farmer_id", required = false) farmerId: UUID?,
+        @RequestParam(required = false) status: CollectionStatus?
+    ): ResponseEntity<ApiResponse<List<ProduceRecordDto>>> {
+        val (records, meta) = listProduceRecordsUseCase.execute(principal.id, farmerId, status, page, perPage)
+        return ResponseEntity.ok(ApiResponse.success(records, meta = meta))
     }
 
     @PostMapping("/farmers")

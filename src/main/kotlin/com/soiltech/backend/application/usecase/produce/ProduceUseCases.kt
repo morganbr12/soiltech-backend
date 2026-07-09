@@ -4,6 +4,8 @@ import com.soiltech.backend.application.dto.produce.CreateProduceRecordRequest
 import com.soiltech.backend.application.dto.produce.ProduceRecordDto
 import com.soiltech.backend.application.dto.produce.UpdateProduceRecordRequest
 import com.soiltech.backend.application.mapper.toDto
+import com.soiltech.backend.domain.entity.Product
+import com.soiltech.backend.domain.entity.ProductCategory
 import com.soiltech.backend.domain.entity.ProduceListing
 import com.soiltech.backend.domain.entity.ProduceRecord
 import com.soiltech.backend.domain.enum.CollectionStatus
@@ -14,6 +16,8 @@ import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.FarmerRepository
 import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.domain.repository.ProduceRecordRepository
+import com.soiltech.backend.domain.repository.ProductCategoryRepository
+import com.soiltech.backend.domain.repository.ProductRepository
 import com.soiltech.backend.interfaces.exception.ForbiddenException
 import com.soiltech.backend.interfaces.exception.NotFoundException
 import com.soiltech.backend.interfaces.response.PaginationMeta
@@ -22,6 +26,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -32,6 +37,8 @@ class CreateProduceRecordUseCase(
     private val agentProfileRepository: AgentProfileRepository,
     private val agentRepository: AgentRepository,
     private val produceListingRepository: ProduceListingRepository,
+    private val productRepository: ProductRepository,
+    private val productCategoryRepository: ProductCategoryRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
     @Transactional
@@ -68,7 +75,7 @@ class CreateProduceRecordUseCase(
             )
         )
 
-        produceListingRepository.save(
+        val listing = produceListingRepository.save(
             ProduceListing(
                 id = UUID.randomUUID(),
                 produceRecordId = record.id,
@@ -95,6 +102,8 @@ class CreateProduceRecordUseCase(
             )
         )
 
+        autoCreateProduct(listing, now)
+
         if (record.collectedAt != null) {
             eventPublisher.publishEvent(
                 com.soiltech.backend.domain.event.ProduceCollectedEvent(
@@ -109,12 +118,67 @@ class CreateProduceRecordUseCase(
 
         return record.toDto()
     }
+
+    private fun autoCreateProduct(listing: ProduceListing, now: LocalDateTime) {
+        val categoryName = listing.cropType.trim()
+            .replaceFirstChar { it.uppercase() }
+        val category = productCategoryRepository.findByName(categoryName)
+            ?: productCategoryRepository.save(
+                ProductCategory(
+                    id = UUID.randomUUID(),
+                    name = categoryName,
+                    description = "Fresh $categoryName sourced from local farmers",
+                    createdAt = now,
+                    updatedAt = now
+                )
+            )
+
+        val productName = if (listing.cropVariety != null)
+            "${listing.cropType} – ${listing.cropVariety}"
+        else listing.cropType
+
+        val location = listOfNotNull(listing.district, listing.region)
+            .joinToString(", ")
+
+        val description = buildString {
+            append("Fresh ${listing.cropType}")
+            if (!listing.farmerName.isNullOrBlank()) append(" from ${listing.farmerName}")
+            if (location.isNotBlank()) append(". $location")
+            if (listing.grade != null) append(". Grade: ${listing.grade}")
+        }
+
+        productRepository.save(
+            Product(
+                id = UUID.randomUUID(),
+                categoryId = category.id,
+                produceListingId = listing.id,
+                name = productName,
+                description = description,
+                pricePerUnit = listing.pricePerKg,
+                unit = "kg",
+                stockQuantity = listing.availableQuantityKg.toInt(),
+                isAvailable = true,
+                imageUrl = listing.photos.firstOrNull(),
+                isOnDeal = false,
+                isFeatured = false,
+                originalPrice = null,
+                farmerName = listing.farmerName,
+                location = location.ifBlank { null },
+                freshnessLabel = if (listing.grade != null) "Grade ${listing.grade}" else "Fresh",
+                averageRating = BigDecimal.ZERO,
+                reviewCount = 0,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+    }
 }
 
 @Service
 class ListProduceRecordsUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(
         userId: UUID,
@@ -123,8 +187,10 @@ class ListProduceRecordsUseCase(
         page: Int,
         perPage: Int
     ): Pair<List<ProduceRecordDto>, PaginationMeta> {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
         val result = produceRecordRepository.findAll(agent.id, farmerId, status, pageable)
         return result.content.map { it.toDto() } to PaginationMeta.from(result, page, perPage)
@@ -134,11 +200,14 @@ class ListProduceRecordsUseCase(
 @Service
 class GetProduceRecordUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(recordId: UUID, userId: UUID): ProduceRecordDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val record = produceRecordRepository.findById(recordId)
             ?: throw NotFoundException("Produce record not found")
         if (record.agentId != agent.id) throw ForbiddenException("Access denied")
@@ -149,12 +218,15 @@ class GetProduceRecordUseCase(
 @Service
 class UpdateProduceRecordUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     @Transactional
     fun execute(recordId: UUID, request: UpdateProduceRecordRequest, userId: UUID): ProduceRecordDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val record = produceRecordRepository.findById(recordId)
             ?: throw NotFoundException("Produce record not found")
         if (record.agentId != agent.id) throw ForbiddenException("Access denied")

@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface ProductCategoryJpaRepository : JpaRepository<ProductCategoryJpaEntity, UUID>
+interface ProductCategoryJpaRepository : JpaRepository<ProductCategoryJpaEntity, UUID> {
+    fun findByNameIgnoreCase(name: String): ProductCategoryJpaEntity?
+}

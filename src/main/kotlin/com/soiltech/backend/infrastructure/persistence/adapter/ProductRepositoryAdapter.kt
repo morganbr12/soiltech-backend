@@ -4,6 +4,7 @@ import com.soiltech.backend.domain.entity.Product
 import com.soiltech.backend.domain.entity.ProductCategory
 import com.soiltech.backend.domain.repository.ProductCategoryRepository
 import com.soiltech.backend.domain.repository.ProductRepository
+import com.soiltech.backend.infrastructure.persistence.entity.ProductCategoryJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.ProductCategoryJpaRepository
 import com.soiltech.backend.infrastructure.persistence.jpa.ProductJpaRepository
 import org.springframework.data.domain.Page
@@ -18,6 +19,9 @@ class ProductRepositoryAdapter(
 
     override fun findById(id: UUID): Product? =
         jpaRepository.findById(id).orElse(null)?.toDomain()
+
+    override fun findByProduceListingId(listingId: UUID): Product? =
+        jpaRepository.findByProduceListingId(listingId)?.toDomain()
 
     override fun findAll(categoryId: UUID?, query: String?, pageable: Pageable): Page<Product> =
         jpaRepository.findAllFiltered(categoryId, query, pageable).map { it.toDomain() }
@@ -49,6 +53,7 @@ class ProductRepositoryAdapter(
                 freshnessLabel = product.freshnessLabel
                 averageRating = product.averageRating
                 reviewCount = product.reviewCount
+                produceListingId = product.produceListingId
             }
             jpaRepository.save(existing).toDomain()
         }
@@ -63,6 +68,17 @@ class ProductCategoryRepositoryAdapter(
     override fun findById(id: UUID): ProductCategory? =
         jpaRepository.findById(id).orElse(null)?.toDomain()
 
+    override fun findByName(name: String): ProductCategory? =
+        jpaRepository.findByNameIgnoreCase(name)?.toDomain()
+
     override fun findAll(pageable: Pageable): Page<ProductCategory> =
         jpaRepository.findAll(pageable).map { it.toDomain() }
+
+    override fun save(category: ProductCategory): ProductCategory {
+        val entity = jpaRepository.findById(category.id).orElse(null)
+            ?: ProductCategoryJpaEntity(id = category.id, name = category.name, description = category.description)
+        entity.name = category.name
+        entity.description = category.description
+        return jpaRepository.save(entity).toDomain()
+    }
 }

@@ -51,7 +51,8 @@ fun PaymentRecord.toDto() = PaymentRecordDto(
 )
 
 fun Product.toDto() = ProductDto(
-    id = id, categoryId = categoryId, name = name, description = description,
+    id = id, categoryId = categoryId, produceListingId = produceListingId,
+    name = name, description = description,
     pricePerUnit = pricePerUnit, unit = unit, stockQuantity = stockQuantity,
     isAvailable = isAvailable, imageUrl = imageUrl,
     isOnDeal = isOnDeal, isFeatured = isFeatured, originalPrice = originalPrice,

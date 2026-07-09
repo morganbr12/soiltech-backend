@@ -7,5 +7,7 @@ import java.util.UUID
 
 interface ProductCategoryRepository {
     fun findById(id: UUID): ProductCategory?
+    fun findByName(name: String): ProductCategory?
     fun findAll(pageable: Pageable): Page<ProductCategory>
+    fun save(category: ProductCategory): ProductCategory
 }

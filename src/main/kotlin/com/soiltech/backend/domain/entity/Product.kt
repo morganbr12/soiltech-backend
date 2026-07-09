@@ -7,6 +7,7 @@ import java.util.UUID
 data class Product(
     val id: UUID,
     val categoryId: UUID,
+    val produceListingId: UUID?,
     val name: String,
     val description: String?,
     val pricePerUnit: BigDecimal,

@@ -30,4 +30,6 @@ interface ProductJpaRepository : JpaRepository<ProductJpaEntity, UUID> {
     fun findByIsOnDealTrueAndIsAvailableTrue(pageable: Pageable): Page<ProductJpaEntity>
 
     fun findByIsFeaturedTrueAndIsAvailableTrue(pageable: Pageable): Page<ProductJpaEntity>
+
+    fun findByProduceListingId(produceListingId: UUID): ProductJpaEntity?
 }

@@ -14,6 +14,7 @@ data class ProductCategoryDto(
 data class ProductDto(
     val id: UUID,
     val categoryId: UUID,
+    val produceListingId: UUID?,
     val name: String,
     val description: String?,
     val pricePerUnit: BigDecimal,
