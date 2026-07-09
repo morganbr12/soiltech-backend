@@ -1,9 +1,11 @@
 package com.soiltech.backend.interfaces.controller
 
 import com.soiltech.backend.application.dto.produce.ProduceListingDto
+import com.soiltech.backend.application.usecase.produce.ApproveProduceListingUseCase
 import com.soiltech.backend.application.usecase.produce.GetProduceListingUseCase
 import com.soiltech.backend.application.usecase.produce.GetProduceListingsUseCase
 import com.soiltech.backend.application.usecase.produce.ListProduceListingsAdminUseCase
+import com.soiltech.backend.application.usecase.produce.RejectProduceListingUseCase
 import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
@@ -19,7 +21,9 @@ import java.util.UUID
 class ProduceListingController(
     private val getListingsUseCase: GetProduceListingsUseCase,
     private val getListingUseCase: GetProduceListingUseCase,
-    private val listAdminUseCase: ListProduceListingsAdminUseCase
+    private val listAdminUseCase: ListProduceListingsAdminUseCase,
+    private val approveListingUseCase: ApproveProduceListingUseCase,
+    private val rejectListingUseCase: RejectProduceListingUseCase
 ) {
 
     @GetMapping
@@ -63,4 +67,18 @@ class ProduceListingController(
         @PathVariable id: UUID
     ): ResponseEntity<ApiResponse<ProduceListingDto>> =
         ResponseEntity.ok(ApiResponse.success(getListingUseCase.execute(id)))
+
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun approve(
+        @PathVariable id: UUID
+    ): ResponseEntity<ApiResponse<ProduceListingDto>> =
+        ResponseEntity.ok(ApiResponse.success(approveListingUseCase.execute(id), "Produce listing approved"))
+
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun reject(
+        @PathVariable id: UUID
+    ): ResponseEntity<ApiResponse<ProduceListingDto>> =
+        ResponseEntity.ok(ApiResponse.success(rejectListingUseCase.execute(id), "Produce listing rejected"))
 }

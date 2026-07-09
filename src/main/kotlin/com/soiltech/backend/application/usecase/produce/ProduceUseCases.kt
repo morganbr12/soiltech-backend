@@ -9,8 +9,10 @@ import com.soiltech.backend.domain.entity.ProductCategory
 import com.soiltech.backend.domain.entity.ProduceListing
 import com.soiltech.backend.domain.entity.ProduceRecord
 import com.soiltech.backend.domain.enum.CollectionStatus
+import com.soiltech.backend.domain.enum.NotificationType
 import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.domain.enum.SyncStatus
+import com.soiltech.backend.infrastructure.service.NotificationService
 import com.soiltech.backend.domain.repository.AgentProfileRepository
 import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.FarmerRepository
@@ -39,7 +41,8 @@ class CreateProduceRecordUseCase(
     private val produceListingRepository: ProduceListingRepository,
     private val productRepository: ProductRepository,
     private val productCategoryRepository: ProductCategoryRepository,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
+    private val notificationService: NotificationService
 ) {
     @Transactional
     fun execute(request: CreateProduceRecordRequest, userId: UUID, photoUrls: List<String> = emptyList()): ProduceRecordDto {
@@ -89,7 +92,7 @@ class CreateProduceRecordUseCase(
                 totalQuantityKg = record.quantityKg,
                 availableQuantityKg = record.quantityKg,
                 pricePerKg = record.pricePerKg,
-                status = ProduceListingStatus.AVAILABLE,
+                status = ProduceListingStatus.PENDING_APPROVAL,
                 region = farmer.region,
                 district = farmer.district,
                 agentName = "${agent.firstName} ${agent.lastName}",
@@ -103,6 +106,14 @@ class CreateProduceRecordUseCase(
         )
 
         autoCreateProduct(listing, now)
+
+        notificationService.pushToAdmins(
+            title = "New Produce Listing Pending Approval",
+            body = "${agent.firstName} ${agent.lastName} submitted ${record.quantityKg}kg of ${record.cropType} for approval.",
+            type = NotificationType.PRODUCE_SUBMITTED,
+            referenceId = listing.id,
+            referenceType = "PRODUCE_LISTING"
+        )
 
         if (record.collectedAt != null) {
             eventPublisher.publishEvent(
@@ -157,7 +168,7 @@ class CreateProduceRecordUseCase(
                 pricePerUnit = listing.pricePerKg,
                 unit = "kg",
                 stockQuantity = listing.availableQuantityKg.toInt(),
-                isAvailable = true,
+                isAvailable = listing.status == ProduceListingStatus.AVAILABLE,
                 imageUrl = listing.photos.firstOrNull(),
                 isOnDeal = false,
                 isFeatured = false,

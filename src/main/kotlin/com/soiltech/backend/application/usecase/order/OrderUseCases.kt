@@ -6,11 +6,13 @@ import com.soiltech.backend.application.mapper.toListDto
 import com.soiltech.backend.domain.entity.CustomerOrder
 import com.soiltech.backend.domain.entity.OrderItem
 import com.soiltech.backend.domain.entity.OrderTimeline
+import com.soiltech.backend.domain.enum.NotificationType
 import com.soiltech.backend.domain.enum.OrderStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
 import com.soiltech.backend.domain.repository.CustomerProfileRepository
 import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.domain.repository.ProductRepository
+import com.soiltech.backend.infrastructure.service.NotificationService
 import com.soiltech.backend.interfaces.exception.BadRequestException
 import com.soiltech.backend.interfaces.exception.ForbiddenException
 import com.soiltech.backend.interfaces.exception.NotFoundException
@@ -30,7 +32,8 @@ class PlaceOrderUseCase(
     private val customerProfileRepository: CustomerProfileRepository,
     private val productRepository: ProductRepository,
     private val produceListingRepository: ProduceListingRepository,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
+    private val notificationService: NotificationService
 ) {
     @Transactional
     fun execute(request: PlaceOrderRequest, userId: UUID): CustomerOrderDto {
@@ -99,6 +102,14 @@ class PlaceOrderUseCase(
             )
         )
 
+        notificationService.pushToAdmins(
+            title = "New Order Received",
+            body = "${customer.fullName} placed an order worth GHS ${totalAmount}.",
+            type = NotificationType.ORDER_PLACED,
+            referenceId = orderId,
+            referenceType = "ORDER"
+        )
+
         return order.toDto(savedItems, listOf(timeline))
     }
 }
@@ -141,7 +152,8 @@ class GetOrderUseCase(
 
 @Service
 class UpdateOrderStatusUseCase(
-    private val customerOrderRepository: CustomerOrderRepository
+    private val customerOrderRepository: CustomerOrderRepository,
+    private val notificationService: NotificationService
 ) {
     @Transactional
     fun execute(orderId: UUID, request: UpdateOrderStatusRequest, userId: UUID): CustomerOrderDto {
@@ -160,6 +172,50 @@ class UpdateOrderStatusUseCase(
                 createdBy = userId
             )
         )
+
+        when (request.status) {
+            OrderStatus.CONFIRMED -> notificationService.pushToCustomer(
+                customerProfileId = order.customerId,
+                title = "Order Confirmed",
+                body = "Your order has been confirmed and is being prepared.",
+                type = NotificationType.ORDER_CONFIRMED,
+                referenceId = orderId,
+                referenceType = "ORDER"
+            )
+            OrderStatus.AGENT_CONFIRMED -> notificationService.pushToCustomer(
+                customerProfileId = order.customerId,
+                title = "Order Ready for Pickup",
+                body = "Your order has been verified in the field and is ready for pickup.",
+                type = NotificationType.ORDER_AGENT_CONFIRMED,
+                referenceId = orderId,
+                referenceType = "ORDER"
+            )
+            OrderStatus.SHIPPED -> notificationService.pushToCustomer(
+                customerProfileId = order.customerId,
+                title = "Order On the Way",
+                body = "Your order is on the way!",
+                type = NotificationType.ORDER_SHIPPED,
+                referenceId = orderId,
+                referenceType = "ORDER"
+            )
+            OrderStatus.DELIVERED -> notificationService.pushToCustomer(
+                customerProfileId = order.customerId,
+                title = "Order Delivered",
+                body = "Your order has been delivered. Thank you!",
+                type = NotificationType.ORDER_DELIVERED,
+                referenceId = orderId,
+                referenceType = "ORDER"
+            )
+            OrderStatus.CANCELLED -> notificationService.pushToCustomer(
+                customerProfileId = order.customerId,
+                title = "Order Cancelled",
+                body = "Your order has been cancelled.",
+                type = NotificationType.ORDER_CANCELLED,
+                referenceId = orderId,
+                referenceType = "ORDER"
+            )
+            else -> Unit
+        }
 
         val items = customerOrderRepository.findItemsByOrderId(orderId)
         val timeline = customerOrderRepository.findTimelineByOrderId(orderId)

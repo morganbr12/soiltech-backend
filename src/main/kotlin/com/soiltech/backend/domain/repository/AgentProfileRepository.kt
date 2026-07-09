@@ -6,5 +6,6 @@ import java.util.UUID
 interface AgentProfileRepository {
     fun findById(id: UUID): AgentProfile?
     fun findByUserId(userId: UUID): AgentProfile?
+    fun findByAgentCode(agentCode: String): AgentProfile?
     fun save(profile: AgentProfile): AgentProfile
 }

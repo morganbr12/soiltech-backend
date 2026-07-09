@@ -18,6 +18,9 @@ class AgentProfileRepositoryAdapter(
     override fun findByUserId(userId: UUID): AgentProfile? =
         jpaRepository.findByUserId(userId)?.toDomain()
 
+    override fun findByAgentCode(agentCode: String): AgentProfile? =
+        jpaRepository.findByAgentCode(agentCode)?.toDomain()
+
     override fun save(profile: AgentProfile): AgentProfile {
         val entity = jpaRepository.findById(profile.id)
             .orElse(AgentProfileJpaEntity.fromDomain(profile))

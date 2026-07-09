@@ -8,5 +8,6 @@ import java.util.UUID
 @Repository
 interface AgentProfileJpaRepository : JpaRepository<AgentProfileJpaEntity, UUID> {
     fun findByUserId(userId: UUID): AgentProfileJpaEntity?
+    fun findByAgentCode(agentCode: String): AgentProfileJpaEntity?
     fun existsByAgentCode(agentCode: String): Boolean
 }
