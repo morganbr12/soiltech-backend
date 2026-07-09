@@ -146,6 +146,7 @@ class RegisterAgentUseCase(
                 passwordHash = passwordEncoder.encode(request.password),
                 role = UserRole.AGENT,
                 isActive = true,
+                lastLoginAt = null,
                 createdAt = now,
                 updatedAt = now
             )

@@ -26,8 +26,10 @@ data class AdminProfileDto(
     val email: String,
     val phone: String,
     val region: String?,
+    val lbcId: UUID?,
     val role: AdminRoleDto,
     val status: String,
+    val lastLoginAt: LocalDateTime?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )
@@ -40,6 +42,7 @@ data class CreateAdminRequest(
     @field:NotBlank
     val fullName: String,
     val region: String? = null,
+    val lbcId: UUID? = null,
     @field:NotBlank @field:Size(min = 8, message = "Password must be at least 8 characters")
     val password: String,
     @field:NotNull

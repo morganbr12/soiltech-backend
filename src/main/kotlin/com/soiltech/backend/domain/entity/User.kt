@@ -11,6 +11,7 @@ data class User(
     val passwordHash: String,
     val role: UserRole,
     val isActive: Boolean,
+    val lastLoginAt: LocalDateTime?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )

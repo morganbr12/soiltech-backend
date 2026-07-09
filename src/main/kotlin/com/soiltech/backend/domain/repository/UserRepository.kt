@@ -1,6 +1,7 @@
 package com.soiltech.backend.domain.repository
 
 import com.soiltech.backend.domain.entity.User
+import java.time.LocalDateTime
 import java.util.UUID
 
 interface UserRepository {
@@ -11,4 +12,5 @@ interface UserRepository {
     fun existsByEmail(email: String): Boolean
     fun existsByPhone(phone: String): Boolean
     fun delete(id: UUID)
+    fun updateLastLogin(userId: UUID, time: LocalDateTime)
 }

@@ -33,6 +33,7 @@ class AdminProfileRepositoryAdapter(
             existing.fullName = profile.fullName
             existing.phone = profile.phone
             existing.region = profile.region
+            existing.lbcId = profile.lbcId
             existing.isActive = profile.isActive
             existing
         } else {
@@ -43,6 +44,7 @@ class AdminProfileRepositoryAdapter(
                 email = profile.email,
                 phone = profile.phone,
                 region = profile.region,
+                lbcId = profile.lbcId,
                 adminRole = roleEntity,
                 isActive = profile.isActive
             )

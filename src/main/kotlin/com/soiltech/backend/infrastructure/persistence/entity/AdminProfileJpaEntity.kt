@@ -28,6 +28,9 @@ class AdminProfileJpaEntity(
     @Column(length = 100)
     var region: String? = null,
 
+    @Column
+    var lbcId: UUID? = null,
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "admin_role_id", nullable = false)
     var adminRole: AdminRoleJpaEntity,
@@ -43,6 +46,7 @@ class AdminProfileJpaEntity(
         email = email,
         phone = phone ?: "",
         region = region,
+        lbcId = lbcId,
         adminRoleId = adminRole.id!!,
         adminRoleName = adminRole.name,
         permissions = adminRole.permissions.toSet(),

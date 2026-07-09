@@ -52,6 +52,7 @@ class RegisterUseCase(
                 passwordHash = passwordEncoder.encode(request.password),
                 role = request.role,
                 isActive = true,
+                lastLoginAt = null,
                 createdAt = now,
                 updatedAt = now
             )

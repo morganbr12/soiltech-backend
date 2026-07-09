@@ -45,6 +45,7 @@ class CreateAdminUserUseCase(
                 passwordHash = passwordEncoder.encode(request.password),
                 role = UserRole.ADMIN,
                 isActive = true,
+                lastLoginAt = null,
                 createdAt = now,
                 updatedAt = now
             )
@@ -58,6 +59,7 @@ class CreateAdminUserUseCase(
                 email = user.email,
                 phone = request.phone,
                 region = request.region,
+                lbcId = request.lbcId,
                 adminRoleId = role.id,
                 adminRoleName = role.name,
                 permissions = role.permissions,
@@ -67,7 +69,7 @@ class CreateAdminUserUseCase(
             )
         )
 
-        return profile.toDto(phone = request.phone, roleDto = role.toDto())
+        return profile.toDto(phone = request.phone, lastLoginAt = null, roleDto = role.toDto())
     }
 }
 
@@ -79,9 +81,10 @@ class GetAdminProfileUseCase(
     fun execute(userId: UUID): AdminProfileDto {
         val profile = adminProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Admin profile not found")
-        val phone = profile.phone ?: userRepository.findById(userId)?.phone ?: ""
+        val user = userRepository.findById(userId)
         return profile.toDto(
-            phone = phone,
+            phone = profile.phone ?: user?.phone ?: "",
+            lastLoginAt = user?.lastLoginAt,
             roleDto = AdminRoleDto(
                 id = profile.adminRoleId,
                 name = profile.adminRoleName,
@@ -111,19 +114,26 @@ class GetAdminRoleUseCase(
 
 @Service
 class ListAdminUsersUseCase(
-    private val adminProfileRepository: AdminProfileRepository
+    private val adminProfileRepository: AdminProfileRepository,
+    private val userRepository: UserRepository
 ) {
-    fun execute(): List<AdminProfileDto> = adminProfileRepository.findAll().map { profile ->
-        profile.toDto(
-            phone = profile.phone ?: "",
-            roleDto = AdminRoleDto(
-                id = profile.adminRoleId,
-                name = profile.adminRoleName,
-                label = profile.adminRoleName.label,
-                permissions = profile.permissions,
-                permissionCount = profile.permissions.size
+    fun execute(): List<AdminProfileDto> {
+        val profiles = adminProfileRepository.findAll()
+        val userMap = profiles.mapNotNull { userRepository.findById(it.userId) }.associateBy { it.id }
+        return profiles.map { profile ->
+            val user = userMap[profile.userId]
+            profile.toDto(
+                phone = profile.phone ?: user?.phone ?: "",
+                lastLoginAt = user?.lastLoginAt,
+                roleDto = AdminRoleDto(
+                    id = profile.adminRoleId,
+                    name = profile.adminRoleName,
+                    label = profile.adminRoleName.label,
+                    permissions = profile.permissions,
+                    permissionCount = profile.permissions.size
+                )
             )
-        )
+        }
     }
 }
 
@@ -151,7 +161,8 @@ class AssignAdminRoleUseCase(
             )
         )
 
-        return updated.toDto(phone = updated.phone ?: "", roleDto = role.toDto())
+        val lastLoginAt = userRepository.findById(userId)?.lastLoginAt
+        return updated.toDto(phone = updated.phone ?: "", lastLoginAt = lastLoginAt, roleDto = role.toDto())
     }
 }
 
@@ -164,7 +175,7 @@ private fun com.soiltech.backend.domain.entity.AdminRole.toDto() = AdminRoleDto(
     permissionCount = permissions.size
 )
 
-private fun AdminProfile.toDto(phone: String, roleDto: AdminRoleDto) = AdminProfileDto(
+private fun AdminProfile.toDto(phone: String, lastLoginAt: java.time.LocalDateTime?, roleDto: AdminRoleDto) = AdminProfileDto(
     id = id,
     userId = userId,
     firstName = fullName.substringBefore(" ").ifBlank { fullName },
@@ -173,8 +184,10 @@ private fun AdminProfile.toDto(phone: String, roleDto: AdminRoleDto) = AdminProf
     email = email,
     phone = phone,
     region = region,
+    lbcId = lbcId,
     role = roleDto,
     status = if (isActive) "active" else "inactive",
+    lastLoginAt = lastLoginAt,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

@@ -3,6 +3,7 @@ package com.soiltech.backend.infrastructure.persistence.entity
 import com.soiltech.backend.domain.entity.User
 import com.soiltech.backend.domain.enum.UserRole
 import jakarta.persistence.*
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
@@ -31,7 +32,10 @@ class UserJpaEntity(
     var role: UserRole,
 
     @Column(nullable = false)
-    var isActive: Boolean = true
+    var isActive: Boolean = true,
+
+    @Column
+    var lastLoginAt: LocalDateTime? = null
 ) : BaseJpaEntity() {
 
 
@@ -42,6 +46,7 @@ class UserJpaEntity(
         passwordHash = passwordHash,
         role = role,
         isActive = isActive,
+        lastLoginAt = lastLoginAt,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -53,7 +58,8 @@ class UserJpaEntity(
             phone = user.phone,
             passwordHash = user.passwordHash,
             role = user.role,
-            isActive = user.isActive
+            isActive = user.isActive,
+            lastLoginAt = user.lastLoginAt
         )
     }
 }

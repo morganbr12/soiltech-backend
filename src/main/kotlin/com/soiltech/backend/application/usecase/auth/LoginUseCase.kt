@@ -13,6 +13,7 @@ import com.soiltech.backend.interfaces.exception.BadRequestException
 import com.soiltech.backend.interfaces.exception.UnauthorizedException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class LoginUseCase(
@@ -48,6 +49,8 @@ class LoginUseCase(
             val msg = if (request.email != null) "Invalid email or password" else "Invalid phone number or password"
             throw UnauthorizedException(msg)
         }
+
+        userRepository.updateLastLogin(user.id, LocalDateTime.now())
 
         val accessToken = jwtService.generateAccessToken(user.id, user.email, user.role.name)
         val refreshToken = jwtService.generateRefreshToken(user.id, user.email, user.role.name)
