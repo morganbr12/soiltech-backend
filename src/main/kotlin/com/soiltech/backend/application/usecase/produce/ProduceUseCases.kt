@@ -10,6 +10,7 @@ import com.soiltech.backend.domain.enum.CollectionStatus
 import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.domain.enum.SyncStatus
 import com.soiltech.backend.domain.repository.AgentProfileRepository
+import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.FarmerRepository
 import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.domain.repository.ProduceRecordRepository
@@ -29,13 +30,16 @@ class CreateProduceRecordUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
     private val farmerRepository: FarmerRepository,
     private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository,
     private val produceListingRepository: ProduceListingRepository,
     private val eventPublisher: ApplicationEventPublisher
 ) {
     @Transactional
     fun execute(request: CreateProduceRecordRequest, userId: UUID, photoUrls: List<String> = emptyList()): ProduceRecordDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(request.farmerId)
             ?: throw NotFoundException("Farmer not found")
         if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
@@ -81,7 +85,7 @@ class CreateProduceRecordUseCase(
                 status = ProduceListingStatus.AVAILABLE,
                 region = farmer.region,
                 district = farmer.district,
-                agentName = agent.fullName,
+                agentName = "${agent.firstName} ${agent.lastName}",
                 farmerName = "${farmer.firstName} ${farmer.lastName}",
                 lbcName = farmer.lbcName,
                 photos = photoUrls,
