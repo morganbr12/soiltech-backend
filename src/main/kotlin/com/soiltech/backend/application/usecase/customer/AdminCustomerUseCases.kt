@@ -125,6 +125,7 @@ class CreateCustomerUseCase(
                 passwordHash = passwordEncoder.encode(request.password),
                 role = UserRole.CUSTOMER,
                 isActive = true,
+                lastLoginAt = null,
                 createdAt = now,
                 updatedAt = now
             )
