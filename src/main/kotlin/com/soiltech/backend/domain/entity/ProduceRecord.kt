@@ -20,6 +20,7 @@ data class ProduceRecord(
     val status: CollectionStatus,
     val collectedAt: LocalDateTime?,
     val notes: String?,
+    val photos: List<String>,
     val syncStatus: SyncStatus,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime

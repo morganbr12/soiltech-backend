@@ -26,7 +26,7 @@ fun ProduceRecord.toDto() = ProduceRecordDto(
     cropType = cropType, cropVariety = cropVariety, grade = grade,
     quantityKg = quantityKg, pricePerKg = pricePerKg,
     totalAmount = totalAmount, status = status, collectedAt = collectedAt,
-    notes = notes, syncStatus = syncStatus, createdAt = createdAt, updatedAt = updatedAt
+    notes = notes, photos = photos, syncStatus = syncStatus, createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun ProduceListing.toDto() = ProduceListingDto(
@@ -35,7 +35,7 @@ fun ProduceListing.toDto() = ProduceListingDto(
     availableQuantityKg = availableQuantityKg, pricePerKg = pricePerKg,
     status = status, region = region, district = district,
     agentName = agentName, farmerName = farmerName, lbcName = lbcName,
-    collectedAt = collectedAt, createdAt = createdAt, updatedAt = updatedAt
+    photos = photos, collectedAt = collectedAt, createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun PickupRequest.toDto() = PickupRequestDto(

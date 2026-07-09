@@ -24,6 +24,7 @@ data class ProduceListing(
     val agentName: String?,
     val farmerName: String?,
     val lbcName: String?,
+    val photos: List<String>,
     val collectedAt: LocalDateTime?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime

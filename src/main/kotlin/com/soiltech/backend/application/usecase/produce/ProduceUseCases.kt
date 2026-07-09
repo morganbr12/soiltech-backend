@@ -33,7 +33,7 @@ class CreateProduceRecordUseCase(
     private val eventPublisher: ApplicationEventPublisher
 ) {
     @Transactional
-    fun execute(request: CreateProduceRecordRequest, userId: UUID): ProduceRecordDto {
+    fun execute(request: CreateProduceRecordRequest, userId: UUID, photoUrls: List<String> = emptyList()): ProduceRecordDto {
         val agent = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
         val farmer = farmerRepository.findById(request.farmerId)
@@ -57,6 +57,7 @@ class CreateProduceRecordUseCase(
                 status = CollectionStatus.PENDING,
                 collectedAt = request.collectedAt,
                 notes = request.notes,
+                photos = photoUrls,
                 syncStatus = SyncStatus.SYNCED,
                 createdAt = now,
                 updatedAt = now
@@ -83,6 +84,7 @@ class CreateProduceRecordUseCase(
                 agentName = agent.fullName,
                 farmerName = "${farmer.firstName} ${farmer.lastName}",
                 lbcName = farmer.lbcName,
+                photos = photoUrls,
                 collectedAt = record.collectedAt,
                 createdAt = now,
                 updatedAt = now

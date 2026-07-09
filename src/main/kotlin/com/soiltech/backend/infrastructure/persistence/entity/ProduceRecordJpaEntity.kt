@@ -56,6 +56,9 @@ class ProduceRecordJpaEntity(
     @Column(length = 1000)
     var notes: String? = null,
 
+    @Column(name = "photos", columnDefinition = "text")
+    var photosRaw: String? = null,
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     var syncStatus: SyncStatus = SyncStatus.PENDING
@@ -76,6 +79,7 @@ class ProduceRecordJpaEntity(
         status = status,
         collectedAt = collectedAt,
         notes = notes,
+        photos = photosRaw?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
         syncStatus = syncStatus,
         createdAt = createdAt,
         updatedAt = updatedAt
@@ -96,6 +100,7 @@ class ProduceRecordJpaEntity(
             status = record.status,
             collectedAt = record.collectedAt,
             notes = record.notes,
+            photosRaw = record.photos.joinToString(",").takeIf { it.isNotEmpty() },
             syncStatus = record.syncStatus
         )
     }

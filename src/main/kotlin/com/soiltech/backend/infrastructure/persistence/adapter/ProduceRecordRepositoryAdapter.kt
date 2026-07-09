@@ -40,6 +40,7 @@ class ProduceRecordRepositoryAdapter(
             totalAmount = record.totalAmount
             cropVariety = record.cropVariety
             grade = record.grade
+            photosRaw = record.photos.joinToString(",").takeIf { it.isNotEmpty() }
         }
         return jpaRepository.save(entity).toDomain()
     }

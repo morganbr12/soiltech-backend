@@ -72,6 +72,9 @@ class ProduceListingJpaEntity(
     @Column(length = 255)
     var lbcName: String? = null,
 
+    @Column(name = "photos", columnDefinition = "text")
+    var photosRaw: String? = null,
+
     var collectedAt: LocalDateTime? = null
 ) : BaseJpaEntity() {
 
@@ -94,6 +97,7 @@ class ProduceListingJpaEntity(
         agentName = agentName,
         farmerName = farmerName,
         lbcName = lbcName,
+        photos = photosRaw?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
         collectedAt = collectedAt,
         createdAt = createdAt,
         updatedAt = updatedAt
@@ -119,6 +123,7 @@ class ProduceListingJpaEntity(
             agentName = listing.agentName,
             farmerName = listing.farmerName,
             lbcName = listing.lbcName,
+            photosRaw = listing.photos.joinToString(",").takeIf { it.isNotEmpty() },
             collectedAt = listing.collectedAt
         )
     }
