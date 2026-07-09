@@ -33,6 +33,8 @@ class FarmRepositoryAdapter(
             location = farm.location
             latitude = farm.latitude
             longitude = farm.longitude
+            estimatedYieldKg = farm.estimatedYieldKg
+            lastHarvestDate = farm.lastHarvestDate
             photosRaw = farm.photos.joinToString(",").takeIf { it.isNotEmpty() }
         }
         return jpaRepository.save(entity).toDomain()
@@ -44,4 +46,7 @@ class FarmRepositoryAdapter(
 
     override fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long =
         jpaRepository.countByCreatedAtBetween(from, to)
+
+    override fun findAllAdmin(region: String?, cropType: String?, search: String?, pageable: Pageable): Page<Farm> =
+        jpaRepository.findAllAdmin(region, cropType, search, pageable).map { it.toDomain() }
 }

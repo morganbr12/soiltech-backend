@@ -24,4 +24,17 @@ interface FarmJpaRepository : JpaRepository<FarmJpaEntity, UUID> {
         @Param("agentId") agentId: UUID,
         pageable: Pageable
     ): List<FarmJpaEntity>
+
+    @Query("""
+        SELECT fm FROM FarmJpaEntity fm
+        WHERE (:region IS NULL OR fm.farmerId IN (SELECT fa.id FROM FarmerJpaEntity fa WHERE fa.region = :region))
+        AND (:cropType IS NULL OR LOWER(fm.cropType) = LOWER(:cropType))
+        AND (:search IS NULL OR LOWER(fm.name) LIKE LOWER(CONCAT('%', :search, '%')))
+    """)
+    fun findAllAdmin(
+        @Param("region") region: String?,
+        @Param("cropType") cropType: String?,
+        @Param("search") search: String?,
+        pageable: Pageable
+    ): Page<FarmJpaEntity>
 }

@@ -2,6 +2,7 @@ package com.soiltech.backend.infrastructure.persistence.entity
 
 import com.soiltech.backend.domain.entity.Farm
 import jakarta.persistence.*
+import java.time.LocalDate
 import java.util.UUID
 
 @Entity
@@ -30,10 +31,13 @@ class FarmJpaEntity(
     var latitude: Double? = null,
     var longitude: Double? = null,
 
+    var estimatedYieldKg: Double? = null,
+
+    var lastHarvestDate: LocalDate? = null,
+
     @Column(name = "photos", columnDefinition = "text")
     var photosRaw: String? = null
 ) : BaseJpaEntity() {
-
 
     fun toDomain(): Farm = Farm(
         id = id!!,
@@ -44,6 +48,8 @@ class FarmJpaEntity(
         location = location,
         latitude = latitude,
         longitude = longitude,
+        estimatedYieldKg = estimatedYieldKg,
+        lastHarvestDate = lastHarvestDate,
         photos = photosRaw?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList(),
         createdAt = createdAt,
         updatedAt = updatedAt
@@ -59,6 +65,8 @@ class FarmJpaEntity(
             location = farm.location,
             latitude = farm.latitude,
             longitude = farm.longitude,
+            estimatedYieldKg = farm.estimatedYieldKg,
+            lastHarvestDate = farm.lastHarvestDate,
             photosRaw = farm.photos.joinToString(",").takeIf { it.isNotEmpty() }
         )
     }

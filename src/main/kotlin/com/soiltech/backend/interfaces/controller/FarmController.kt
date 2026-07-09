@@ -1,5 +1,6 @@
 package com.soiltech.backend.interfaces.controller
 
+import com.soiltech.backend.application.dto.farm.AdminFarmListDto
 import com.soiltech.backend.application.dto.farm.CreateFarmRequest
 import com.soiltech.backend.application.dto.farm.FarmDto
 import com.soiltech.backend.application.dto.farm.UpdateFarmRequest
@@ -54,5 +55,25 @@ class FarmController(
     ): ResponseEntity<ApiResponse<FarmDto>> {
         val data = updateFarmUseCase.execute(farmerId, farmId, request, principal.id)
         return ResponseEntity.ok(ApiResponse.success(data, "Farm updated"))
+    }
+}
+
+@RestController
+@RequestMapping("/admin/farms")
+@PreAuthorize("hasRole('ADMIN')")
+class AdminFarmController(
+    private val listFarmsAdminUseCase: ListFarmsAdminUseCase
+) {
+
+    @GetMapping
+    fun list(
+        @RequestParam(required = false) region: String?,
+        @RequestParam(name = "crop_type", required = false) cropType: String?,
+        @RequestParam(required = false) search: String?,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(name = "per_page", defaultValue = "20") perPage: Int
+    ): ResponseEntity<ApiResponse<List<AdminFarmListDto>>> {
+        val (farms, meta) = listFarmsAdminUseCase.execute(region, cropType, search, page, perPage)
+        return ResponseEntity.ok(ApiResponse.success(farms, meta = meta))
     }
 }

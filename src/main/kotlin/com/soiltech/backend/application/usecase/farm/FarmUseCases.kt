@@ -1,5 +1,6 @@
 package com.soiltech.backend.application.usecase.farm
 
+import com.soiltech.backend.application.dto.farm.AdminFarmListDto
 import com.soiltech.backend.application.dto.farm.CreateFarmRequest
 import com.soiltech.backend.application.dto.farm.FarmDto
 import com.soiltech.backend.application.dto.farm.UpdateFarmRequest
@@ -47,6 +48,8 @@ class CreateFarmUseCase(
                 location = request.location,
                 latitude = request.latitude,
                 longitude = request.longitude,
+                estimatedYieldKg = request.estimatedYieldKg,
+                lastHarvestDate = request.lastHarvestDate,
                 createdAt = now,
                 updatedAt = now
             )
@@ -105,8 +108,49 @@ class UpdateFarmUseCase(
             location = request.location ?: farm.location,
             latitude = request.latitude ?: farm.latitude,
             longitude = request.longitude ?: farm.longitude,
+            estimatedYieldKg = request.estimatedYieldKg ?: farm.estimatedYieldKg,
+            lastHarvestDate = request.lastHarvestDate ?: farm.lastHarvestDate,
             updatedAt = LocalDateTime.now()
         )
         return farmRepository.update(updated).toDto()
+    }
+}
+
+@Service
+class ListFarmsAdminUseCase(
+    private val farmRepository: FarmRepository,
+    private val farmerRepository: FarmerRepository
+) {
+    fun execute(
+        region: String?,
+        cropType: String?,
+        search: String?,
+        page: Int,
+        perPage: Int
+    ): Pair<List<AdminFarmListDto>, PaginationMeta> {
+        val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
+        val farmsPage = farmRepository.findAllAdmin(region, cropType, search, pageable)
+
+        val farmerIds = farmsPage.content.map { it.farmerId }.distinct()
+        val farmerMap = if (farmerIds.isNotEmpty()) {
+            farmerRepository.findByIds(farmerIds).associateBy { it.id }
+        } else emptyMap()
+
+        val dtos = farmsPage.content.map { farm ->
+            val farmer = farmerMap[farm.farmerId]
+            AdminFarmListDto(
+                farmId = farm.id,
+                farmName = farm.name,
+                farmerName = if (farmer != null) "${farmer.firstName} ${farmer.lastName}" else "Unknown",
+                region = farmer?.region ?: "",
+                district = farmer?.district ?: "",
+                cropType = farm.cropType,
+                sizeHectares = farm.sizeHectares,
+                estimatedYieldKg = farm.estimatedYieldKg,
+                lastHarvestDate = farm.lastHarvestDate,
+                registeredDate = farm.createdAt
+            )
+        }
+        return dtos to PaginationMeta.from(farmsPage, page, perPage)
     }
 }

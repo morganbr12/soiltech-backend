@@ -13,4 +13,5 @@ interface FarmRepository {
     fun delete(id: UUID)
     fun countAll(): Long
     fun countCreatedBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
+    fun findAllAdmin(region: String?, cropType: String?, search: String?, pageable: Pageable): Page<Farm>
 }

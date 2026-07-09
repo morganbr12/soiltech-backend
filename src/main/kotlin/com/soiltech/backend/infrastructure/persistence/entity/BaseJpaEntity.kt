@@ -3,7 +3,6 @@ package com.soiltech.backend.infrastructure.persistence.entity
 import jakarta.persistence.Column
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.MappedSuperclass
-import jakarta.persistence.Version
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedBy
@@ -15,10 +14,6 @@ import java.util.UUID
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener::class)
 abstract class BaseJpaEntity {
-
-    @Version
-    @Column(nullable = true)
-    var version: Long? = null
 
     @CreatedDate
     @Column(nullable = false, updatable = false)

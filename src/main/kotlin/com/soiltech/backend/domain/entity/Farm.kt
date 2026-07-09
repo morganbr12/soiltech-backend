@@ -1,5 +1,6 @@
 package com.soiltech.backend.domain.entity
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -12,6 +13,8 @@ data class Farm(
     val location: String?,
     val latitude: Double?,
     val longitude: Double?,
+    val estimatedYieldKg: Double?,
+    val lastHarvestDate: LocalDate?,
     val photos: List<String> = emptyList(),
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
