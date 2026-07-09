@@ -3,13 +3,18 @@ package com.soiltech.backend.interfaces.controller
 import com.soiltech.backend.application.dto.agent.*
 import com.soiltech.backend.application.dto.farm.FarmDto
 import com.soiltech.backend.application.dto.farmer.FarmerResponse
+import com.soiltech.backend.application.dto.produce.CreateProduceRecordRequest
+import com.soiltech.backend.application.dto.produce.ProduceRecordDto
 import com.soiltech.backend.application.usecase.agent.*
+import com.soiltech.backend.application.usecase.produce.CreateProduceRecordUseCase
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.infrastructure.service.CloudinaryService
 import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -28,6 +33,7 @@ class AgentDashboardController(
     private val getFarmerUseCase: GetAgentFarmerUseCase,
     private val registerFarmerUseCase: RegisterFarmerByAgentUseCase,
     private val registerFarmUseCase: RegisterFarmByAgentUseCase,
+    private val createProduceRecordUseCase: CreateProduceRecordUseCase,
     private val cloudinaryService: CloudinaryService
 ) {
 
@@ -78,6 +84,32 @@ class AgentDashboardController(
         val data = registerFarmUseCase.execute(principal.id, request, photoUrls)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.created(data, "Farm registered successfully"))
+    }
+
+    @PostMapping("/produce-records")
+    fun createProduceRecord(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestParam farmerId: UUID,
+        @RequestParam(required = false) farmId: UUID?,
+        @RequestParam cropType: String,
+        @RequestParam(required = false) cropVariety: String?,
+        @RequestParam(required = false) grade: String?,
+        @RequestParam quantityKg: BigDecimal,
+        @RequestParam pricePerKg: BigDecimal,
+        @RequestParam(required = false) notes: String?,
+        @RequestParam(required = false) collectedAt: LocalDateTime?,
+        @RequestParam("photos", required = false) photos: List<MultipartFile>?
+    ): ResponseEntity<ApiResponse<ProduceRecordDto>> {
+        val photoUrls = photos?.filter { !it.isEmpty }
+            ?.map { cloudinaryService.uploadImage(it, "soiltech/produce") } ?: emptyList()
+        val request = CreateProduceRecordRequest(
+            farmerId = farmerId, farmId = farmId, cropType = cropType,
+            cropVariety = cropVariety, grade = grade, quantityKg = quantityKg,
+            pricePerKg = pricePerKg, notes = notes, collectedAt = collectedAt
+        )
+        val data = createProduceRecordUseCase.execute(request, principal.id, photoUrls)
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.created(data, "Produce record created"))
     }
 
     @PostMapping("/farmers")
