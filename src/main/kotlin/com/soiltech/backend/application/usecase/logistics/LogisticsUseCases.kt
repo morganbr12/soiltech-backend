@@ -7,6 +7,7 @@ import com.soiltech.backend.application.mapper.toDto
 import com.soiltech.backend.domain.entity.PickupRequest
 import com.soiltech.backend.domain.enum.LogisticsStatus
 import com.soiltech.backend.domain.repository.AgentProfileRepository
+import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.FarmerRepository
 import com.soiltech.backend.domain.repository.PickupRequestRepository
 import com.soiltech.backend.interfaces.exception.ForbiddenException
@@ -23,12 +24,15 @@ import java.util.UUID
 class CreatePickupRequestUseCase(
     private val pickupRequestRepository: PickupRequestRepository,
     private val farmerRepository: FarmerRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     @Transactional
     fun execute(request: CreatePickupRequestRequest, userId: UUID): PickupRequestDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(request.farmerId)
             ?: throw NotFoundException("Farmer not found")
         if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
@@ -54,7 +58,8 @@ class CreatePickupRequestUseCase(
 @Service
 class ListPickupRequestsUseCase(
     private val pickupRequestRepository: PickupRequestRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(
         userId: UUID,
@@ -63,8 +68,10 @@ class ListPickupRequestsUseCase(
         page: Int,
         perPage: Int
     ): Pair<List<PickupRequestDto>, PaginationMeta> {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("scheduledDate").descending())
         val result = pickupRequestRepository.findAll(agent.id, farmerId, status, pageable)
         return result.content.map { it.toDto() } to PaginationMeta.from(result, page, perPage)
@@ -74,11 +81,14 @@ class ListPickupRequestsUseCase(
 @Service
 class GetPickupRequestUseCase(
     private val pickupRequestRepository: PickupRequestRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(requestId: UUID, userId: UUID): PickupRequestDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val request = pickupRequestRepository.findById(requestId)
             ?: throw NotFoundException("Pickup request not found")
         if (request.agentId != agent.id) throw ForbiddenException("Access denied")
@@ -89,12 +99,15 @@ class GetPickupRequestUseCase(
 @Service
 class UpdatePickupRequestUseCase(
     private val pickupRequestRepository: PickupRequestRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     @Transactional
     fun execute(requestId: UUID, request: UpdatePickupRequestRequest, userId: UUID): PickupRequestDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val pickup = pickupRequestRepository.findById(requestId)
             ?: throw NotFoundException("Pickup request not found")
         if (pickup.agentId != agent.id) throw ForbiddenException("Access denied")

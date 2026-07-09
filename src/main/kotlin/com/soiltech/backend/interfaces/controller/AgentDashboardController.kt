@@ -161,17 +161,3 @@ class AgentDashboardController(
         )
     }
 }
-
-@RestController
-@RequestMapping("/notifications")
-@PreAuthorize("hasRole('AGENT')")
-class AgentNotificationsController(
-    private val unreadCountUseCase: AgentNotificationUnreadCountUseCase
-) {
-
-    @GetMapping("/unread-count")
-    fun getUnreadCount(
-        @AuthenticationPrincipal principal: UserPrincipal
-    ): ResponseEntity<ApiResponse<NotificationCountResponse>> =
-        ResponseEntity.ok(ApiResponse.success(unreadCountUseCase.execute(principal.id)))
-}

@@ -6,6 +6,7 @@ import com.soiltech.backend.application.mapper.toDto
 import com.soiltech.backend.domain.entity.PaymentRecord
 import com.soiltech.backend.domain.enum.PaymentStatus
 import com.soiltech.backend.domain.repository.AgentProfileRepository
+import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.FarmerRepository
 import com.soiltech.backend.domain.repository.PaymentRecordRepository
 import com.soiltech.backend.interfaces.exception.ForbiddenException
@@ -22,12 +23,15 @@ import java.util.UUID
 class CreatePaymentRecordUseCase(
     private val paymentRecordRepository: PaymentRecordRepository,
     private val farmerRepository: FarmerRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     @Transactional
     fun execute(request: CreatePaymentRecordRequest, userId: UUID): PaymentRecordDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(request.farmerId)
             ?: throw NotFoundException("Farmer not found")
         if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
@@ -55,7 +59,8 @@ class CreatePaymentRecordUseCase(
 @Service
 class ListPaymentRecordsUseCase(
     private val paymentRecordRepository: PaymentRecordRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(
         userId: UUID,
@@ -64,8 +69,10 @@ class ListPaymentRecordsUseCase(
         page: Int,
         perPage: Int
     ): Pair<List<PaymentRecordDto>, PaginationMeta> {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
         val result = paymentRecordRepository.findAll(agent.id, farmerId, status, pageable)
         return result.content.map { it.toDto() } to PaginationMeta.from(result, page, perPage)
@@ -75,11 +82,14 @@ class ListPaymentRecordsUseCase(
 @Service
 class GetPaymentRecordUseCase(
     private val paymentRecordRepository: PaymentRecordRepository,
-    private val agentProfileRepository: AgentProfileRepository
+    private val agentProfileRepository: AgentProfileRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(paymentId: UUID, userId: UUID): PaymentRecordDto {
-        val agent = agentProfileRepository.findByUserId(userId)
+        val profile = agentProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Agent profile not found")
+        val agent = agentRepository.findByAgentCode(profile.agentCode)
+            ?: throw NotFoundException("Agent record not found")
         val payment = paymentRecordRepository.findById(paymentId)
             ?: throw NotFoundException("Payment record not found")
         if (payment.agentId != agent.id) throw ForbiddenException("Access denied")
