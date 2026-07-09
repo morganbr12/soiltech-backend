@@ -29,6 +29,11 @@ class CustomerChatJpaEntity(
     @Column(length = 255)
     var agentName: String? = null,
 
+    var lbcId: UUID? = null,
+
+    @Column(length = 255)
+    var lbcName: String? = null,
+
     @Column(length = 1000)
     var lastMessage: String? = null,
 
@@ -58,6 +63,8 @@ class CustomerChatJpaEntity(
         customerName = customerName,
         agentId = agentId,
         agentName = agentName,
+        lbcId = lbcId,
+        lbcName = lbcName,
         lastMessage = lastMessage,
         lastMessageAt = lastMessageAt,
         unreadCount = unreadCount,
@@ -76,6 +83,8 @@ class CustomerChatJpaEntity(
             customerName = c.customerName,
             agentId = c.agentId,
             agentName = c.agentName,
+            lbcId = c.lbcId,
+            lbcName = c.lbcName,
             lastMessage = c.lastMessage,
             lastMessageAt = c.lastMessageAt,
             unreadCount = c.unreadCount,

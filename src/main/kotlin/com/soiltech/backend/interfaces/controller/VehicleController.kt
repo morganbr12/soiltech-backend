@@ -3,6 +3,7 @@ package com.soiltech.backend.interfaces.controller
 import com.soiltech.backend.application.dto.logistics.CreateVehicleRequest
 import com.soiltech.backend.application.dto.logistics.UpdateVehicleRequest
 import com.soiltech.backend.application.dto.logistics.VehicleDto
+import com.soiltech.backend.application.dto.logistics.VehicleKpisDto
 import com.soiltech.backend.application.usecase.logistics.*
 import com.soiltech.backend.domain.enum.VehicleStatus
 import com.soiltech.backend.interfaces.response.ApiResponse
@@ -21,8 +22,13 @@ class VehicleController(
     private val listVehiclesUseCase: ListVehiclesUseCase,
     private val getVehicleUseCase: GetVehicleUseCase,
     private val updateVehicleUseCase: UpdateVehicleUseCase,
-    private val deleteVehicleUseCase: DeleteVehicleUseCase
+    private val deleteVehicleUseCase: DeleteVehicleUseCase,
+    private val getVehicleKpisUseCase: GetVehicleKpisUseCase
 ) {
+
+    @GetMapping("/kpis")
+    fun kpis(): ResponseEntity<ApiResponse<VehicleKpisDto>> =
+        ResponseEntity.ok(ApiResponse.success(getVehicleKpisUseCase.execute()))
 
     @PostMapping
     fun create(

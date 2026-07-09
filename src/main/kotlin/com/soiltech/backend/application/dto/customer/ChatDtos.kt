@@ -13,12 +13,20 @@ data class ChatResponse(
     val customerName: String,
     val agentId: UUID?,
     val agentName: String?,
+    val lbcId: UUID?,
+    val lbcName: String?,
     val lastMessage: String?,
     val lastMessageAt: LocalDateTime?,
     val unreadCount: Int,
     val status: ChatStatus,
     val topic: String?,
     val region: String?
+)
+
+data class StartChatRequest(
+    @field:NotNull(message = "Produce listing ID is required")
+    val produceListingId: UUID,
+    val message: String? = null
 )
 
 data class ChatSummaryResponse(

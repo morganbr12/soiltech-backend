@@ -111,8 +111,9 @@ class AssignChatUseCase(private val chatRepository: CustomerChatRepository) {
 
 // ── Mappers ────────────────────────────────────────────────────────────────────
 
-private fun com.soiltech.backend.domain.entity.CustomerChat.toResponse() = ChatResponse(
+internal fun com.soiltech.backend.domain.entity.CustomerChat.toResponse() = ChatResponse(
     id = id, customerId = customerId, customerName = customerName, agentId = agentId, agentName = agentName,
+    lbcId = lbcId, lbcName = lbcName,
     lastMessage = lastMessage, lastMessageAt = lastMessageAt, unreadCount = unreadCount,
     status = status, topic = topic, region = region
 )

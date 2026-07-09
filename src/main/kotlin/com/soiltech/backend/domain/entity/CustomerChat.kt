@@ -10,6 +10,8 @@ data class CustomerChat(
     val customerName: String,
     val agentId: UUID?,
     val agentName: String?,
+    val lbcId: UUID?,
+    val lbcName: String?,
     val lastMessage: String?,
     val lastMessageAt: LocalDateTime?,
     val unreadCount: Int,

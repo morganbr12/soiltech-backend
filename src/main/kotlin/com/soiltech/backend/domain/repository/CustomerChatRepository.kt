@@ -15,4 +15,7 @@ interface CustomerChatRepository {
 
     fun findMessages(chatId: UUID, pageable: Pageable): Page<ChatMessage>
     fun saveMessage(message: ChatMessage): ChatMessage
+
+    fun findByCustomerId(customerId: UUID): List<CustomerChat>
+    fun findByCustomerIdAndLbcId(customerId: UUID, lbcId: UUID): CustomerChat?
 }

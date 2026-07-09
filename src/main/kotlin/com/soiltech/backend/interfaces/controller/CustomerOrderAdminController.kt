@@ -1,11 +1,15 @@
 package com.soiltech.backend.interfaces.controller
 
 import com.soiltech.backend.application.dto.customer.*
+import com.soiltech.backend.application.dto.logistics.DispatchDriverRequest
+import com.soiltech.backend.application.dto.logistics.DriverDispatchDto
 import com.soiltech.backend.application.dto.order.CustomerOrderDto
 import com.soiltech.backend.application.dto.order.CustomerOrderListDto
 import com.soiltech.backend.application.dto.order.UpdateOrderStatusRequest
 import com.soiltech.backend.application.mapper.toListDto
 import com.soiltech.backend.application.usecase.customer.CreateProduceOrderUseCase
+import com.soiltech.backend.application.usecase.logistics.AdminDispatchDriverUseCase
+import com.soiltech.backend.application.usecase.logistics.AgentFieldConfirmUseCase
 import com.soiltech.backend.application.usecase.order.UpdateOrderStatusUseCase
 import com.soiltech.backend.domain.enum.OrderStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
@@ -27,7 +31,9 @@ import java.util.UUID
 class CustomerOrderAdminController(
     private val customerOrderRepository: CustomerOrderRepository,
     private val createProduceOrderUseCase: CreateProduceOrderUseCase,
-    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase
+    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private val agentFieldConfirmUseCase: AgentFieldConfirmUseCase,
+    private val adminDispatchDriverUseCase: AdminDispatchDriverUseCase
 ) {
 
     @GetMapping
@@ -95,5 +101,26 @@ class CustomerOrderAdminController(
     ): ResponseEntity<ApiResponse<CustomerOrderDto>> {
         val data = updateOrderStatusUseCase.execute(orderId, UpdateOrderStatusRequest(OrderStatus.DELIVERED), principal.id)
         return ResponseEntity.ok(ApiResponse.success(data, "Order marked as delivered"))
+    }
+
+    @PatchMapping("/{orderId}/field-confirm")
+    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+    fun fieldConfirm(
+        @PathVariable orderId: UUID,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<CustomerOrderDto>> {
+        val data = agentFieldConfirmUseCase.execute(orderId, principal.id)
+        return ResponseEntity.ok(ApiResponse.success(data, "Order confirmed as ready at farm"))
+    }
+
+    @PostMapping("/{orderId}/dispatch-driver")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:orders')")
+    fun dispatchDriver(
+        @PathVariable orderId: UUID,
+        @Valid @RequestBody request: DispatchDriverRequest,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<DriverDispatchDto>> {
+        val data = adminDispatchDriverUseCase.execute(orderId, request, principal.id)
+        return ResponseEntity.ok(ApiResponse.success(data, "Driver dispatched successfully"))
     }
 }

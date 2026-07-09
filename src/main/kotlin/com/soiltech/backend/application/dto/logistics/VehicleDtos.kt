@@ -39,6 +39,14 @@ data class CreateVehicleRequest(
     val status: VehicleStatus = VehicleStatus.AVAILABLE
 )
 
+data class VehicleKpisDto(
+    val totalVehicles: Long,
+    val available: Long,
+    val onRoute: Long,
+    val maintenance: Long,
+    val inactive: Long
+)
+
 data class UpdateVehicleRequest(
     val vehicleType: String? = null,
     val make: String? = null,

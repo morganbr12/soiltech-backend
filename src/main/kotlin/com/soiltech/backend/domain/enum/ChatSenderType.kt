@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 enum class ChatSenderType(@JsonValue val value: String) {
     CUSTOMER("customer"),
     AGENT("agent"),
+    LBC("lbc"),
     SYSTEM("system");
 
     companion object {

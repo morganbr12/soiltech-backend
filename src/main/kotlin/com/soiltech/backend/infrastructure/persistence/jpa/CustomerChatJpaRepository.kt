@@ -14,4 +14,8 @@ interface CustomerChatJpaRepository :
 
     @Query("SELECT c.status, COUNT(c) FROM CustomerChatJpaEntity c GROUP BY c.status")
     fun countGroupByStatus(): List<Array<Any>>
+
+    fun findByCustomerIdOrderByUpdatedAtDesc(customerId: UUID): List<CustomerChatJpaEntity>
+
+    fun findByCustomerIdAndLbcId(customerId: UUID, lbcId: UUID): CustomerChatJpaEntity?
 }

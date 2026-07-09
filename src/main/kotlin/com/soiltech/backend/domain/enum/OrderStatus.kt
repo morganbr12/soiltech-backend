@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue
 enum class OrderStatus(@JsonValue val value: String) {
     PENDING("pending"),
     CONFIRMED("confirmed"),
+    AGENT_CONFIRMED("agentConfirmed"),
+    DRIVER_DISPATCHED("driverDispatched"),
     PROCESSING("processing"),
     SHIPPED("shipped"),
     DELIVERED("delivered"),

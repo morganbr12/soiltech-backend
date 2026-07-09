@@ -48,6 +48,8 @@ class CustomerChatRepositoryAdapter(
             existing.apply {
                 agentId = chat.agentId
                 agentName = chat.agentName
+                lbcId = chat.lbcId
+                lbcName = chat.lbcName
                 lastMessage = chat.lastMessage
                 lastMessageAt = chat.lastMessageAt
                 unreadCount = chat.unreadCount
@@ -77,4 +79,10 @@ class CustomerChatRepositoryAdapter(
 
     override fun saveMessage(message: ChatMessage): ChatMessage =
         messageJpa.save(ChatMessageJpaEntity.fromDomain(message)).toDomain()
+
+    override fun findByCustomerId(customerId: UUID): List<CustomerChat> =
+        chatJpa.findByCustomerIdOrderByUpdatedAtDesc(customerId).map { it.toDomain() }
+
+    override fun findByCustomerIdAndLbcId(customerId: UUID, lbcId: UUID): CustomerChat? =
+        chatJpa.findByCustomerIdAndLbcId(customerId, lbcId)?.toDomain()
 }

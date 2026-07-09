@@ -3,6 +3,7 @@ package com.soiltech.backend.application.usecase.logistics
 import com.soiltech.backend.application.dto.logistics.CreateVehicleRequest
 import com.soiltech.backend.application.dto.logistics.UpdateVehicleRequest
 import com.soiltech.backend.application.dto.logistics.VehicleDto
+import com.soiltech.backend.application.dto.logistics.VehicleKpisDto
 import com.soiltech.backend.domain.entity.Vehicle
 import com.soiltech.backend.domain.enum.VehicleStatus
 import com.soiltech.backend.domain.repository.VehicleRepository
@@ -105,4 +106,15 @@ class UpdateVehicleUseCase(private val vehicleRepository: VehicleRepository) {
 @Service
 class DeleteVehicleUseCase(private val vehicleRepository: VehicleRepository) {
     fun execute(id: UUID) = vehicleRepository.delete(id)
+}
+
+@Service
+class GetVehicleKpisUseCase(private val vehicleRepository: VehicleRepository) {
+    fun execute(): VehicleKpisDto = VehicleKpisDto(
+        totalVehicles = vehicleRepository.countAll(),
+        available = vehicleRepository.countByStatus(VehicleStatus.AVAILABLE),
+        onRoute = vehicleRepository.countByStatus(VehicleStatus.ON_ROUTE),
+        maintenance = vehicleRepository.countByStatus(VehicleStatus.MAINTENANCE),
+        inactive = vehicleRepository.countByStatus(VehicleStatus.INACTIVE)
+    )
 }
