@@ -10,7 +10,6 @@ import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import java.util.UUID
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -51,16 +50,31 @@ class AgentDashboardController(
     ): ResponseEntity<ApiResponse<List<AgentActivityResponse>>> =
         ResponseEntity.ok(ApiResponse.success(activitiesUseCase.execute(principal.id, limit)))
 
-    @PostMapping("/farms", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/farms")
     fun registerFarm(
         @AuthenticationPrincipal principal: UserPrincipal,
-        @RequestPart("data") request: RegisterFarmByAgentRequest,
-        @RequestPart("photos", required = false) photos: List<MultipartFile>?
+        @RequestParam("farmerId") farmerId: UUID,
+        @RequestParam("name") name: String,
+        @RequestParam(required = false) sizeHectares: Double?,
+        @RequestParam(required = false) cropType: String?,
+        @RequestParam(required = false) location: String?,
+        @RequestParam(required = false) latitude: Double?,
+        @RequestParam(required = false) longitude: Double?,
+        @RequestParam("photos", required = false) photos: List<MultipartFile>?
     ): ResponseEntity<ApiResponse<FarmDto>> {
         val photoUrls = photos
             ?.filter { !it.isEmpty }
             ?.map { cloudinaryService.uploadImage(it, "soiltech/farms") }
             ?: emptyList()
+        val request = RegisterFarmByAgentRequest(
+            farmerId = farmerId,
+            name = name,
+            sizeHectares = sizeHectares,
+            cropType = cropType,
+            location = location,
+            latitude = latitude,
+            longitude = longitude
+        )
         val data = registerFarmUseCase.execute(principal.id, request, photoUrls)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.created(data, "Farm registered successfully"))
