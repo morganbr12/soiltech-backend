@@ -4,8 +4,10 @@ import com.soiltech.backend.domain.entity.Farm
 import com.soiltech.backend.domain.repository.FarmRepository
 import com.soiltech.backend.infrastructure.persistence.entity.FarmJpaEntity
 import com.soiltech.backend.infrastructure.persistence.jpa.FarmJpaRepository
+import jakarta.persistence.criteria.Predicate
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.util.UUID
@@ -48,5 +50,30 @@ class FarmRepositoryAdapter(
         jpaRepository.countByCreatedAtBetween(from, to)
 
     override fun findAllAdmin(region: String?, cropType: String?, search: String?, pageable: Pageable): Page<Farm> =
-        jpaRepository.findAllAdmin(region, cropType, search, pageable).map { it.toDomain() }
+        jpaRepository.findAll(buildAdminSpec(region, cropType, search), pageable).map { it.toDomain() }
+
+    private fun buildAdminSpec(region: String?, cropType: String?, search: String?): Specification<FarmJpaEntity> =
+        Specification { root, query, cb ->
+            val predicates = mutableListOf<Predicate>()
+
+            region?.takeIf { it.isNotBlank() }?.let { r ->
+                val farmerSubquery = query!!.subquery(UUID::class.java)
+                val farmerRoot = farmerSubquery.from(
+                    com.soiltech.backend.infrastructure.persistence.entity.FarmerJpaEntity::class.java
+                )
+                farmerSubquery.select(farmerRoot.get("id"))
+                    .where(cb.equal(cb.lower(farmerRoot.get("region")), r.lowercase()))
+                predicates.add(root.get<UUID>("farmerId").`in`(farmerSubquery))
+            }
+
+            cropType?.takeIf { it.isNotBlank() }?.let {
+                predicates.add(cb.equal(cb.lower(root.get("cropType")), it.lowercase()))
+            }
+
+            search?.takeIf { it.isNotBlank() }?.let { q ->
+                predicates.add(cb.like(cb.lower(root.get("name")), "%${q.lowercase()}%"))
+            }
+
+            cb.and(*predicates.toTypedArray())
+        }
 }

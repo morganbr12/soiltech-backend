@@ -4,13 +4,14 @@ import com.soiltech.backend.infrastructure.persistence.entity.FarmJpaEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface FarmJpaRepository : JpaRepository<FarmJpaEntity, UUID> {
+interface FarmJpaRepository : JpaRepository<FarmJpaEntity, UUID>, JpaSpecificationExecutor<FarmJpaEntity> {
     fun findByFarmerId(farmerId: UUID, pageable: Pageable): Page<FarmJpaEntity>
 
     fun countByCreatedAtBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
@@ -24,17 +25,4 @@ interface FarmJpaRepository : JpaRepository<FarmJpaEntity, UUID> {
         @Param("agentId") agentId: UUID,
         pageable: Pageable
     ): List<FarmJpaEntity>
-
-    @Query("""
-        SELECT fm FROM FarmJpaEntity fm
-        WHERE (:region IS NULL OR fm.farmerId IN (SELECT fa.id FROM FarmerJpaEntity fa WHERE fa.region = :region))
-        AND (:cropType IS NULL OR LOWER(fm.cropType) = LOWER(:cropType))
-        AND (:search IS NULL OR LOWER(fm.name) LIKE LOWER(CONCAT('%', :search, '%')))
-    """)
-    fun findAllAdmin(
-        @Param("region") region: String?,
-        @Param("cropType") cropType: String?,
-        @Param("search") search: String?,
-        pageable: Pageable
-    ): Page<FarmJpaEntity>
 }
