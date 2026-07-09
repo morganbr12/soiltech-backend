@@ -7,6 +7,7 @@ import com.soiltech.backend.infrastructure.persistence.jpa.NotificationJpaReposi
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Component
@@ -26,9 +27,11 @@ class NotificationRepositoryAdapter(
     override fun countUnreadByUserId(userId: UUID): Long =
         jpaRepository.countByUserIdAndIsReadFalse(userId)
 
+    @Transactional
     override fun markAsRead(id: UUID, userId: UUID): Boolean =
         jpaRepository.markAsRead(id, userId) > 0
 
+    @Transactional
     override fun markAllAsRead(userId: UUID): Int =
         jpaRepository.markAllAsRead(userId)
 }
