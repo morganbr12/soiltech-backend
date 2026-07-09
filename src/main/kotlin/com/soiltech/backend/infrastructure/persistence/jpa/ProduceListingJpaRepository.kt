@@ -16,6 +16,8 @@ interface ProduceListingJpaRepository : JpaRepository<ProduceListingJpaEntity, U
 
     fun findByProduceRecordId(produceRecordId: UUID): ProduceListingJpaEntity?
 
+    fun findByProduceRecordIdIn(produceRecordIds: Collection<UUID>): List<ProduceListingJpaEntity>
+
     fun findTop7ByOrderByCreatedAtDesc(): List<ProduceListingJpaEntity>
 
     @Query("""

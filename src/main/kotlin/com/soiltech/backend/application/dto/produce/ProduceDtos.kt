@@ -1,6 +1,7 @@
 package com.soiltech.backend.application.dto.produce
 
 import com.soiltech.backend.domain.enum.CollectionStatus
+import com.soiltech.backend.domain.enum.ProduceListingStatus
 import com.soiltech.backend.domain.enum.SyncStatus
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.NotBlank
@@ -21,6 +22,7 @@ data class ProduceRecordDto(
     val pricePerKg: BigDecimal,
     val totalAmount: BigDecimal,
     val status: CollectionStatus,
+    val listingStatus: ProduceListingStatus?,
     val collectedAt: LocalDateTime?,
     val notes: String?,
     val photos: List<String>,

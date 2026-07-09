@@ -62,6 +62,9 @@ class ProduceListingRepositoryAdapter(
     ): Page<ProduceListing> =
         jpaRepository.findAllAdmin(status, cropType, region, search, pageable).map { it.toDomain() }
 
+    override fun findByProduceRecordIds(recordIds: Collection<UUID>): List<ProduceListing> =
+        jpaRepository.findByProduceRecordIdIn(recordIds).map { it.toDomain() }
+
     override fun findRecent(limit: Int): List<ProduceListing> =
         jpaRepository.findTop7ByOrderByCreatedAtDesc().take(limit).map { it.toDomain() }
 

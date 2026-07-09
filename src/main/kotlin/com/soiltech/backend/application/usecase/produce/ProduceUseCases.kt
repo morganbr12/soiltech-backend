@@ -188,6 +188,7 @@ class CreateProduceRecordUseCase(
 @Service
 class ListProduceRecordsUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
+    private val produceListingRepository: ProduceListingRepository,
     private val agentProfileRepository: AgentProfileRepository,
     private val agentRepository: AgentRepository
 ) {
@@ -204,13 +205,19 @@ class ListProduceRecordsUseCase(
             ?: throw NotFoundException("Agent record not found")
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
         val result = produceRecordRepository.findAll(agent.id, farmerId, status, pageable)
-        return result.content.map { it.toDto() } to PaginationMeta.from(result, page, perPage)
+
+        val listingStatusMap = produceListingRepository
+            .findByProduceRecordIds(result.content.map { it.id })
+            .associateBy { it.produceRecordId }
+
+        return result.content.map { it.toDto(listingStatusMap[it.id]?.status) } to PaginationMeta.from(result, page, perPage)
     }
 }
 
 @Service
 class GetProduceRecordUseCase(
     private val produceRecordRepository: ProduceRecordRepository,
+    private val produceListingRepository: ProduceListingRepository,
     private val agentProfileRepository: AgentProfileRepository,
     private val agentRepository: AgentRepository
 ) {
@@ -222,7 +229,8 @@ class GetProduceRecordUseCase(
         val record = produceRecordRepository.findById(recordId)
             ?: throw NotFoundException("Produce record not found")
         if (record.agentId != agent.id) throw ForbiddenException("Access denied")
-        return record.toDto()
+        val listingStatus = produceListingRepository.findByProduceRecordId(record.id)?.status
+        return record.toDto(listingStatus)
     }
 }
 

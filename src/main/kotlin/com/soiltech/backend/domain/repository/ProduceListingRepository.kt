@@ -11,6 +11,7 @@ interface ProduceListingRepository {
     fun save(listing: ProduceListing): ProduceListing
     fun findById(id: UUID): ProduceListing?
     fun findByProduceRecordId(recordId: UUID): ProduceListing?
+    fun findByProduceRecordIds(recordIds: Collection<UUID>): List<ProduceListing>
     fun findAllAvailable(
         cropType: String?,
         region: String?,

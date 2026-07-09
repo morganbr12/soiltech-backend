@@ -23,12 +23,13 @@ fun Farm.toDto() = FarmDto(
     createdAt = createdAt, updatedAt = updatedAt
 )
 
-fun ProduceRecord.toDto() = ProduceRecordDto(
+fun ProduceRecord.toDto(listingStatus: com.soiltech.backend.domain.enum.ProduceListingStatus? = null) = ProduceRecordDto(
     id = id, farmerId = farmerId, farmId = farmId, agentId = agentId,
     cropType = cropType, cropVariety = cropVariety, grade = grade,
     quantityKg = quantityKg, pricePerKg = pricePerKg,
-    totalAmount = totalAmount, status = status, collectedAt = collectedAt,
-    notes = notes, photos = photos, syncStatus = syncStatus, createdAt = createdAt, updatedAt = updatedAt
+    totalAmount = totalAmount, status = status, listingStatus = listingStatus,
+    collectedAt = collectedAt, notes = notes, photos = photos,
+    syncStatus = syncStatus, createdAt = createdAt, updatedAt = updatedAt
 )
 
 fun ProduceListing.toDto() = ProduceListingDto(
