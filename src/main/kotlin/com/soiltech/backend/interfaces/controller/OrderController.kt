@@ -44,10 +44,10 @@ class OrderController(
         @RequestParam(required = false) status: String?,
         @AuthenticationPrincipal principal: UserPrincipal
     ): ResponseEntity<ApiResponse<List<CustomerOrderListDto>>> {
-        val statuses = when (status?.lowercase()) {
+        val statuses = when (status?.takeIf { it.isNotBlank() }?.lowercase()) {
             null -> null
-            "active" -> listOf(OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED)
-            else -> listOf(OrderStatus.fromValue(status))
+            "active" -> listOf(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED)
+            else -> listOf(OrderStatus.fromValue(status!!))
         }
         val (orders, meta) = listOrdersUseCase.execute(principal.id, statuses, page, perPage)
         return ResponseEntity.ok(ApiResponse.success(orders, meta = meta))
