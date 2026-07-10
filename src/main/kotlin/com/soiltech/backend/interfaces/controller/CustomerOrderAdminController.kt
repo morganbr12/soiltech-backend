@@ -106,6 +106,61 @@ class CustomerOrderAdminController(
         return ResponseEntity.ok(ApiResponse.success(dtos, meta = PaginationMeta.from(result, page, limit)))
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    fun listMy(
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int,
+        @RequestParam(required = false) status: String?,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<List<ProduceOrderResponse>>> {
+        val customer = customerProfileRepository.findByUserId(principal.id)
+            ?: return ResponseEntity.ok(ApiResponse.success(emptyList()))
+        val produceStatus = status?.takeIf { it.isNotBlank() }?.let {
+            runCatching { ProduceOrderStatus.fromValue(it) }.getOrNull()
+        }
+        val pageable = PageRequest.of((page - 1).coerceAtLeast(0), limit, Sort.by(Sort.Direction.DESC, "createdAt"))
+        val result = customerProduceOrderRepository.findAll(produceStatus, null, null, customer.id, null, pageable)
+        val orders = result.content
+        val farmerIds = orders.mapNotNull { it.farmerId }.distinct()
+        val agentIds = orders.mapNotNull { it.agentId }.distinct()
+        val farmerMap = farmerRepository.findByIds(farmerIds).associateBy { it.id }
+        val agentMap = agentRepository.findByIds(agentIds)
+        val dtos = orders.map { order ->
+            ProduceOrderResponse(
+                id = order.id, orderCode = order.orderCode, customerId = order.customerId,
+                customerCode = order.customerCode, customerName = order.customerName,
+                customer = null,
+                farmer = farmerMap[order.farmerId]?.let {
+                    FarmerSummary(
+                        id = it.id, farmerCode = it.farmerCode,
+                        fullName = "${it.firstName} ${it.lastName}",
+                        phone = it.phone, email = it.email,
+                        region = it.region, district = it.district,
+                        community = it.community, cropTypes = it.cropTypes
+                    )
+                },
+                agent = agentMap[order.agentId]?.let {
+                    AgentSummary(
+                        id = it.id, agentCode = it.agentCode,
+                        fullName = "${it.firstName} ${it.lastName}",
+                        phone = it.phone, email = it.email,
+                        region = it.region, district = it.district
+                    )
+                },
+                produce = order.produce, quantityKg = order.quantityKg,
+                pricePerKg = order.pricePerKg, totalAmount = order.totalAmount, status = order.status,
+                paymentStatus = order.paymentStatus, assignedAgent = order.assignedAgent,
+                assignedDriver = order.assignedDriver, orderDate = order.orderDate,
+                deliveryDate = order.deliveryDate, region = order.region,
+                cancellationReason = order.cancellationReason,
+                farmerName = order.farmerName, farmerPhone = order.farmerPhone, agentPhone = order.agentPhone,
+                createdAt = order.createdAt, updatedAt = order.updatedAt
+            )
+        }
+        return ResponseEntity.ok(ApiResponse.success(dtos, meta = PaginationMeta.from(result, page, limit)))
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:orders') or hasRole('CUSTOMER')")
     fun create(
