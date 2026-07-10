@@ -13,6 +13,8 @@ import java.util.UUID
 data class OrderItemDto(
     val id: UUID,
     val productId: UUID,
+    val farmerId: UUID?,
+    val agentId: UUID?,
     val productName: String?,
     val agentName: String?,
     val region: String?,

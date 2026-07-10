@@ -7,6 +7,8 @@ data class OrderItem(
     val id: UUID,
     val orderId: UUID,
     val productId: UUID,
+    val farmerId: UUID?,
+    val agentId: UUID?,
     val productName: String?,
     val agentName: String?,
     val region: String?,

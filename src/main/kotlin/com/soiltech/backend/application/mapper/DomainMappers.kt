@@ -75,8 +75,9 @@ fun ProductReview.toDto() = ProductReviewDto(
 )
 
 fun OrderItem.toDto() = OrderItemDto(
-    id = id, productId = productId, productName = productName,
-    agentName = agentName, region = region,
+    id = id, productId = productId,
+    farmerId = farmerId, agentId = agentId,
+    productName = productName, agentName = agentName, region = region,
     quantity = quantity, unitPrice = unitPrice, subtotal = subtotal
 )
 
