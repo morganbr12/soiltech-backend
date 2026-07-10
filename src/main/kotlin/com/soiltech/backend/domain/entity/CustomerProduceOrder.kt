@@ -26,5 +26,8 @@ data class CustomerProduceOrder(
     val orderDate: LocalDate,
     val deliveryDate: LocalDate?,
     val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime
+    val updatedAt: LocalDateTime,
+    val farmerName: String? = null,
+    val farmerPhone: String? = null,
+    val agentPhone: String? = null
 )

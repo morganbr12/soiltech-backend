@@ -59,6 +59,7 @@ class CustomerOrderAdminController(
                 paymentStatus = order.paymentStatus, assignedAgent = order.assignedAgent,
                 assignedDriver = order.assignedDriver, orderDate = order.orderDate,
                 deliveryDate = order.deliveryDate, region = order.region,
+                farmerName = order.farmerName, farmerPhone = order.farmerPhone, agentPhone = order.agentPhone,
                 createdAt = order.createdAt, updatedAt = order.updatedAt
             )
         }

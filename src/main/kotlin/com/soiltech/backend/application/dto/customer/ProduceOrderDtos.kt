@@ -27,6 +27,9 @@ data class ProduceOrderResponse(
     val orderDate: LocalDate,
     val deliveryDate: LocalDate?,
     val region: String,
+    val farmerName: String?,
+    val farmerPhone: String?,
+    val agentPhone: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )
@@ -59,7 +62,11 @@ data class CreateProduceOrderRequest(
 
     val assignedAgent: String? = null,
 
-    val paymentType: String? = null
+    val paymentType: String? = null,
+
+    val farmerId: UUID? = null,
+
+    val agentId: UUID? = null
 )
 
 data class CancelOrderRequest(val reason: String? = null)

@@ -4,8 +4,10 @@ import com.soiltech.backend.application.dto.customer.*
 import com.soiltech.backend.domain.entity.CustomerProduceOrder
 import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.enum.ProducePaymentStatus
+import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.CustomerProduceOrderRepository
 import com.soiltech.backend.domain.repository.CustomerProfileRepository
+import com.soiltech.backend.domain.repository.FarmerRepository
 import com.soiltech.backend.interfaces.exception.BadRequestException
 import com.soiltech.backend.interfaces.exception.NotFoundException
 import com.soiltech.backend.interfaces.response.PaginationMeta
@@ -56,7 +58,9 @@ class ListProduceOrdersUseCase(private val orderRepository: CustomerProduceOrder
 @Service
 class CreateProduceOrderUseCase(
     private val orderRepository: CustomerProduceOrderRepository,
-    private val customerProfileRepository: CustomerProfileRepository
+    private val customerProfileRepository: CustomerProfileRepository,
+    private val farmerRepository: FarmerRepository,
+    private val agentRepository: AgentRepository
 ) {
     @Transactional
     fun execute(request: CreateProduceOrderRequest, userId: UUID? = null): ProduceOrderResponse {
@@ -67,6 +71,9 @@ class CreateProduceOrderUseCase(
                 ?: throw NotFoundException("Customer profile not found")
             else -> throw com.soiltech.backend.interfaces.exception.BadRequestException("customer_id is required")
         }
+
+        val farmer = request.farmerId?.let { farmerRepository.findById(it) }
+        val agent = request.agentId?.let { agentRepository.findById(it) }
 
         val now = LocalDateTime.now()
         val orderCode = generateUniqueCode(orderRepository)
@@ -85,14 +92,17 @@ class CreateProduceOrderUseCase(
                 totalAmount = totalAmount,
                 status = ProduceOrderStatus.PENDING,
                 paymentStatus = ProducePaymentStatus.UNPAID,
-                assignedAgent = request.assignedAgent,
+                assignedAgent = agent?.let { "${it.firstName} ${it.lastName}" } ?: request.assignedAgent,
                 assignedDriver = null,
                 region = request.region ?: "",
                 cancellationReason = null,
                 orderDate = LocalDate.now(),
                 deliveryDate = null,
                 createdAt = now,
-                updatedAt = now
+                updatedAt = now,
+                farmerName = farmer?.let { "${it.firstName} ${it.lastName}" },
+                farmerPhone = farmer?.phone,
+                agentPhone = agent?.phone
             )
         )
         return order.toResponse()
@@ -157,5 +167,7 @@ private fun CustomerProduceOrder.toResponse() = ProduceOrderResponse(
     id = id, orderCode = orderCode, customerId = customerId, customerName = customerName,
     produce = produce, quantityKg = quantityKg, pricePerKg = pricePerKg, totalAmount = totalAmount,
     status = status, paymentStatus = paymentStatus, assignedAgent = assignedAgent, assignedDriver = assignedDriver,
-    orderDate = orderDate, deliveryDate = deliveryDate, region = region, createdAt = createdAt, updatedAt = updatedAt
+    orderDate = orderDate, deliveryDate = deliveryDate, region = region,
+    farmerName = farmerName, farmerPhone = farmerPhone, agentPhone = agentPhone,
+    createdAt = createdAt, updatedAt = updatedAt
 )

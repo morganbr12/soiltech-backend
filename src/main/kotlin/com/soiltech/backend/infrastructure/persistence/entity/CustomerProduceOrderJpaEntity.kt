@@ -68,7 +68,16 @@ class CustomerProduceOrderJpaEntity(
     @Column(nullable = false)
     var orderDate: LocalDate,
 
-    var deliveryDate: LocalDate? = null
+    var deliveryDate: LocalDate? = null,
+
+    @Column(length = 200)
+    var farmerName: String? = null,
+
+    @Column(length = 30)
+    var farmerPhone: String? = null,
+
+    @Column(length = 30)
+    var agentPhone: String? = null
 
 ) : BaseJpaEntity() {
 
@@ -91,7 +100,10 @@ class CustomerProduceOrderJpaEntity(
         orderDate = orderDate,
         deliveryDate = deliveryDate,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
+        farmerName = farmerName,
+        farmerPhone = farmerPhone,
+        agentPhone = agentPhone
     )
 
     companion object {
@@ -112,7 +124,10 @@ class CustomerProduceOrderJpaEntity(
             region = o.region,
             cancellationReason = o.cancellationReason,
             orderDate = o.orderDate,
-            deliveryDate = o.deliveryDate
+            deliveryDate = o.deliveryDate,
+            farmerName = o.farmerName,
+            farmerPhone = o.farmerPhone,
+            agentPhone = o.agentPhone
         )
     }
 }
