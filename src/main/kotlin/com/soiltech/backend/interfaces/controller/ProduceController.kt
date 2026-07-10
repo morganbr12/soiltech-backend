@@ -20,6 +20,61 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
+// Alias controller: Flutter calls POST /produce for collection submission
+@RestController
+@RequestMapping("/produce")
+@PreAuthorize("hasRole('AGENT')")
+class ProduceSubmissionController(
+    private val createProduceRecordUseCase: CreateProduceRecordUseCase,
+    private val cloudinaryService: CloudinaryService
+) {
+    @PostMapping(consumes = ["multipart/form-data", "application/x-www-form-urlencoded", "application/json"])
+    fun submitCollection(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestParam(name = "farmer_id", required = false) farmerId: UUID?,
+        @RequestParam(name = "farmerId", required = false) farmerIdCamel: UUID?,
+        @RequestParam(name = "farm_id", required = false) farmId: UUID?,
+        @RequestParam(name = "farmId", required = false) farmIdCamel: UUID?,
+        @RequestParam(name = "crop_type", required = false) cropType: String?,
+        @RequestParam(name = "cropType", required = false) cropTypeCamel: String?,
+        @RequestParam(name = "crop_variety", required = false) cropVariety: String?,
+        @RequestParam(required = false) grade: String?,
+        @RequestParam(name = "quantity_kg", required = false) quantityKg: BigDecimal?,
+        @RequestParam(name = "quantityKg", required = false) quantityKgCamel: BigDecimal?,
+        @RequestParam(name = "price_per_kg", required = false) pricePerKg: BigDecimal?,
+        @RequestParam(name = "pricePerKg", required = false) pricePerKgCamel: BigDecimal?,
+        @RequestParam(required = false) notes: String?,
+        @RequestParam(name = "collected_at", required = false) collectedAt: LocalDateTime?,
+        @RequestParam("photos", required = false) photos: List<MultipartFile>?
+    ): ResponseEntity<ApiResponse<ProduceRecordDto>> {
+        val resolvedFarmerId = farmerId ?: farmerIdCamel
+            ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("farmer_id is required")
+        val resolvedCropType = cropType ?: cropTypeCamel
+            ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("crop_type is required")
+        val resolvedQty = quantityKg ?: quantityKgCamel
+            ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("quantity_kg is required")
+        val resolvedPrice = pricePerKg ?: pricePerKgCamel
+            ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("price_per_kg is required")
+
+        val photoUrls = photos?.filter { !it.isEmpty }
+            ?.map { cloudinaryService.uploadImage(it, "soiltech/produce") } ?: emptyList()
+        val request = CreateProduceRecordRequest(
+            farmerId = resolvedFarmerId,
+            farmId = farmId ?: farmIdCamel,
+            cropType = resolvedCropType,
+            cropVariety = cropVariety,
+            grade = grade,
+            quantityKg = resolvedQty,
+            pricePerKg = resolvedPrice,
+            notes = notes,
+            collectedAt = collectedAt
+        )
+        val data = createProduceRecordUseCase.execute(request, principal.id, photoUrls)
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.created(data, "Produce record created"))
+    }
+}
+
 @RestController
 @RequestMapping("/produce-records")
 @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")

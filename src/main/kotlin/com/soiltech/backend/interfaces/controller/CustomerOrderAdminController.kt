@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 import java.util.UUID
 
 @RestController
@@ -58,11 +59,31 @@ class CustomerOrderAdminController(
         return ResponseEntity.ok(ApiResponse.success(dtos, meta = PaginationMeta.from(result, page, limit)))
     }
 
-    @PostMapping
+    @PostMapping(consumes = ["multipart/form-data", "application/x-www-form-urlencoded", "application/json"])
     @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:orders')")
     fun create(
-        @Valid @RequestBody request: CreateProduceOrderRequest
+        @RequestParam(name = "customer_id", required = false) customerId: UUID?,
+        @RequestParam(name = "customerId", required = false) customerIdCamel: UUID?,
+        @RequestParam produce: String,
+        @RequestParam(name = "quantity_kg", required = false) quantityKg: Double?,
+        @RequestParam(name = "quantityKg", required = false) quantityKgCamel: Double?,
+        @RequestParam(name = "price_per_kg", required = false) pricePerKg: BigDecimal?,
+        @RequestParam(name = "pricePerKg", required = false) pricePerKgCamel: BigDecimal?,
+        @RequestParam region: String,
+        @RequestParam(name = "assigned_agent", required = false) assignedAgent: String?,
+        @RequestParam(name = "assignedAgent", required = false) assignedAgentCamel: String?
     ): ResponseEntity<ApiResponse<ProduceOrderResponse>> {
+        val request = CreateProduceOrderRequest(
+            customerId = customerId ?: customerIdCamel
+                ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("customer_id is required"),
+            produce = produce,
+            quantityKg = quantityKg ?: quantityKgCamel
+                ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("quantity_kg is required"),
+            pricePerKg = pricePerKg ?: pricePerKgCamel
+                ?: throw com.soiltech.backend.interfaces.exception.BadRequestException("price_per_kg is required"),
+            region = region,
+            assignedAgent = assignedAgent ?: assignedAgentCamel
+        )
         val data = createProduceOrderUseCase.execute(request)
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.created(data, "Order created successfully"))
