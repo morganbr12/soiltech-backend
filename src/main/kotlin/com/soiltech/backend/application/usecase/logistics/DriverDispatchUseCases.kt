@@ -10,7 +10,9 @@ import com.soiltech.backend.domain.entity.OrderTimeline
 import com.soiltech.backend.domain.enum.DispatchStatus
 import com.soiltech.backend.domain.enum.NotificationType
 import com.soiltech.backend.domain.enum.OrderStatus
+import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
+import com.soiltech.backend.domain.repository.CustomerProduceOrderRepository
 import com.soiltech.backend.domain.repository.DriverDispatchRepository
 import com.soiltech.backend.domain.repository.VehicleRepository
 import com.soiltech.backend.infrastructure.service.NotificationService
@@ -86,17 +88,17 @@ class AgentFieldConfirmUseCase(
 
 @Service
 class AdminDispatchDriverUseCase(
-    private val customerOrderRepository: CustomerOrderRepository,
+    private val produceOrderRepository: CustomerProduceOrderRepository,
     private val vehicleRepository: VehicleRepository,
     private val driverDispatchRepository: DriverDispatchRepository,
     private val notificationService: NotificationService
 ) {
     @Transactional
     fun execute(orderId: UUID, request: DispatchDriverRequest, adminId: UUID): DriverDispatchDto {
-        val order = customerOrderRepository.findById(orderId)
+        val order = produceOrderRepository.findById(orderId)
             ?: throw NotFoundException("Order not found")
 
-        if (order.status != OrderStatus.CONFIRMED && order.status != OrderStatus.AGENT_CONFIRMED) {
+        if (order.status != ProduceOrderStatus.CONFIRMED) {
             throw BadRequestException("Order must be CONFIRMED before dispatching a driver. Current status: ${order.status.value}")
         }
 
@@ -123,7 +125,7 @@ class AdminDispatchDriverUseCase(
                 plateNumber = vehicle.carPlateNumber,
                 vehicleType = vehicle.vehicleType,
                 scheduledDate = request.scheduledDate,
-                pickupLocation = request.pickupLocation ?: order.deliveryAddress,
+                pickupLocation = request.pickupLocation ?: order.region,
                 notes = request.notes,
                 status = DispatchStatus.PENDING,
                 createdAt = LocalDateTime.now(),
@@ -135,15 +137,11 @@ class AdminDispatchDriverUseCase(
 
         vehicleRepository.save(vehicle.copy(status = com.soiltech.backend.domain.enum.VehicleStatus.ON_ROUTE, updatedAt = LocalDateTime.now()))
 
-        customerOrderRepository.updateStatus(orderId, OrderStatus.DRIVER_DISPATCHED)
-        customerOrderRepository.saveTimeline(
-            OrderTimeline(
-                id = UUID.randomUUID(),
-                orderId = orderId,
-                status = OrderStatus.DRIVER_DISPATCHED,
-                note = "Driver ${vehicle.driverName} (${vehicle.carPlateNumber}) dispatched. Scheduled: ${request.scheduledDate}",
-                createdAt = LocalDateTime.now(),
-                createdBy = adminId
+        produceOrderRepository.save(
+            order.copy(
+                status = ProduceOrderStatus.PROCESSING,
+                assignedDriver = "${vehicle.driverName} (${vehicle.carPlateNumber})",
+                updatedAt = LocalDateTime.now()
             )
         )
 
@@ -174,7 +172,7 @@ class ListDriverDispatchesUseCase(
 @Service
 class UpdateDispatchStatusUseCase(
     private val driverDispatchRepository: DriverDispatchRepository,
-    private val customerOrderRepository: CustomerOrderRepository,
+    private val produceOrderRepository: CustomerProduceOrderRepository,
     private val vehicleRepository: VehicleRepository,
     private val notificationService: NotificationService
 ) {
@@ -182,20 +180,14 @@ class UpdateDispatchStatusUseCase(
     fun execute(dispatchId: UUID, request: UpdateDispatchStatusRequest, updatedBy: UUID): DriverDispatchDto {
         val dispatch = driverDispatchRepository.findById(dispatchId)
             ?: throw NotFoundException("Dispatch not found")
-        val order = customerOrderRepository.findById(dispatch.orderId)
+        val order = produceOrderRepository.findById(dispatch.orderId)
 
         val updated = driverDispatchRepository.updateStatus(dispatchId, request.status)
 
         when (request.status) {
-            DispatchStatus.EN_ROUTE -> {
-                customerOrderRepository.updateStatus(dispatch.orderId, OrderStatus.SHIPPED)
-                customerOrderRepository.saveTimeline(OrderTimeline(
-                    id = UUID.randomUUID(), orderId = dispatch.orderId,
-                    status = OrderStatus.SHIPPED,
-                    note = "Driver is en route to deliver the order",
-                    createdAt = LocalDateTime.now(), createdBy = updatedBy
-                ))
+            DispatchStatus.EN_ROUTE, DispatchStatus.PICKED_UP -> {
                 order?.let {
+                    produceOrderRepository.save(it.copy(status = ProduceOrderStatus.PROCESSING, updatedAt = LocalDateTime.now()))
                     notificationService.pushToCustomer(
                         customerProfileId = it.customerId,
                         title = "Order On the Way",
@@ -206,29 +198,13 @@ class UpdateDispatchStatusUseCase(
                     )
                 }
             }
-            DispatchStatus.PICKED_UP -> {
-                customerOrderRepository.saveTimeline(OrderTimeline(
-                    id = UUID.randomUUID(), orderId = dispatch.orderId,
-                    status = OrderStatus.SHIPPED,
-                    note = "Produce picked up from farm. In transit to customer",
-                    createdAt = LocalDateTime.now(), createdBy = updatedBy
-                ))
-            }
             DispatchStatus.DELIVERED -> {
-                customerOrderRepository.updateStatus(dispatch.orderId, OrderStatus.DELIVERED)
-                customerOrderRepository.saveTimeline(OrderTimeline(
-                    id = UUID.randomUUID(), orderId = dispatch.orderId,
-                    status = OrderStatus.DELIVERED,
-                    note = "Order delivered successfully",
-                    createdAt = LocalDateTime.now(), createdBy = updatedBy
-                ))
-                vehicleRepository.findById(dispatch.vehicleId)?.let { vehicle ->
-                    vehicleRepository.save(vehicle.copy(
-                        status = com.soiltech.backend.domain.enum.VehicleStatus.AVAILABLE,
+                order?.let {
+                    produceOrderRepository.save(it.copy(
+                        status = ProduceOrderStatus.DELIVERED,
+                        deliveryDate = java.time.LocalDate.now(),
                         updatedAt = LocalDateTime.now()
                     ))
-                }
-                order?.let {
                     notificationService.pushToCustomer(
                         customerProfileId = it.customerId,
                         title = "Order Delivered",
@@ -238,13 +214,13 @@ class UpdateDispatchStatusUseCase(
                         referenceType = "ORDER"
                     )
                 }
+                vehicleRepository.findById(dispatch.vehicleId)?.let { vehicle ->
+                    vehicleRepository.save(vehicle.copy(status = com.soiltech.backend.domain.enum.VehicleStatus.AVAILABLE, updatedAt = LocalDateTime.now()))
+                }
             }
             DispatchStatus.CANCELLED -> {
                 vehicleRepository.findById(dispatch.vehicleId)?.let { vehicle ->
-                    vehicleRepository.save(vehicle.copy(
-                        status = com.soiltech.backend.domain.enum.VehicleStatus.AVAILABLE,
-                        updatedAt = LocalDateTime.now()
-                    ))
+                    vehicleRepository.save(vehicle.copy(status = com.soiltech.backend.domain.enum.VehicleStatus.AVAILABLE, updatedAt = LocalDateTime.now()))
                 }
             }
             else -> {}
