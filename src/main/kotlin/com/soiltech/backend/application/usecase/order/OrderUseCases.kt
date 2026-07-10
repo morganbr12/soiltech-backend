@@ -181,6 +181,46 @@ class GetOrderUseCase(
 }
 
 @Service
+class ListAllOrdersAdminUseCase(
+    private val customerOrderRepository: CustomerOrderRepository
+) {
+    fun execute(
+        customerId: UUID?,
+        statuses: List<OrderStatus>?,
+        page: Int,
+        perPage: Int,
+        sortOrder: String
+    ): Pair<List<CustomerOrderListDto>, PaginationMeta> {
+        val direction = if (sortOrder.equals("asc", ignoreCase = true)) Sort.Direction.ASC else Sort.Direction.DESC
+        val pageable = PageRequest.of((page - 1).coerceAtLeast(0), perPage, Sort.by(direction, "createdAt"))
+        val result = customerOrderRepository.findAllAdmin(customerId, statuses, pageable)
+        val dtos = result.content.map { order ->
+            val itemCount = customerOrderRepository.findItemsByOrderId(order.id).size
+            order.toListDto(itemCount)
+        }
+        return dtos to PaginationMeta.from(result, page, perPage)
+    }
+}
+
+@Service
+class GetCustomerOrdersUseCase(
+    private val customerOrderRepository: CustomerOrderRepository,
+    private val customerProfileRepository: CustomerProfileRepository
+) {
+    fun execute(customerId: UUID, statuses: List<OrderStatus>?, page: Int, perPage: Int): Pair<List<CustomerOrderListDto>, PaginationMeta> {
+        customerProfileRepository.findById(customerId)
+            ?: throw NotFoundException("Customer not found")
+        val pageable = PageRequest.of((page - 1).coerceAtLeast(0), perPage, Sort.by("createdAt").descending())
+        val result = customerOrderRepository.findAllAdmin(customerId, statuses, pageable)
+        val dtos = result.content.map { order ->
+            val itemCount = customerOrderRepository.findItemsByOrderId(order.id).size
+            order.toListDto(itemCount)
+        }
+        return dtos to PaginationMeta.from(result, page, perPage)
+    }
+}
+
+@Service
 class UpdateOrderStatusUseCase(
     private val customerOrderRepository: CustomerOrderRepository,
     private val notificationService: NotificationService

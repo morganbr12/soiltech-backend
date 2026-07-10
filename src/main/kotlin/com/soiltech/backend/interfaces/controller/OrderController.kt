@@ -16,13 +16,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
+
+
 @RestController
 @RequestMapping("/orders")
 class OrderController(
     private val placeOrderUseCase: PlaceOrderUseCase,
     private val listOrdersUseCase: ListOrdersUseCase,
     private val getOrderUseCase: GetOrderUseCase,
-    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase
+    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private val listAllOrdersAdminUseCase: ListAllOrdersAdminUseCase
 ) {
 
     @PostMapping
@@ -61,6 +64,22 @@ class OrderController(
     ): ResponseEntity<ApiResponse<CustomerOrderDto>> {
         val data = getOrderUseCase.execute(id, principal.id)
         return ResponseEntity.ok(ApiResponse.success(data))
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun listAdmin(
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int,
+        @RequestParam(required = false) customerId: UUID?,
+        @RequestParam(required = false) status: String?,
+        @RequestParam(name = "sortOrder", defaultValue = "desc") sortOrder: String
+    ): ResponseEntity<ApiResponse<List<CustomerOrderListDto>>> {
+        val statuses = status?.takeIf { it.isNotBlank() }
+            ?.split(",")
+            ?.mapNotNull { runCatching { OrderStatus.valueOf(it.trim().uppercase()) }.getOrNull() }
+        val (orders, meta) = listAllOrdersAdminUseCase.execute(customerId, statuses, page, limit, sortOrder)
+        return ResponseEntity.ok(ApiResponse.success(orders, meta = meta))
     }
 
     @PatchMapping("/{id}/status")

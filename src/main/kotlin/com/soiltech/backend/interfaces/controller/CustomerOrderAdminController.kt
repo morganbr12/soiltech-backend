@@ -54,11 +54,13 @@ class CustomerOrderAdminController(
         val dtos = result.content.map { order ->
             ProduceOrderResponse(
                 id = order.id, orderCode = order.orderCode, customerId = order.customerId,
-                customerName = order.customerName, produce = order.produce, quantityKg = order.quantityKg,
+                customerCode = order.customerCode, customerName = order.customerName,
+                produce = order.produce, quantityKg = order.quantityKg,
                 pricePerKg = order.pricePerKg, totalAmount = order.totalAmount, status = order.status,
                 paymentStatus = order.paymentStatus, assignedAgent = order.assignedAgent,
                 assignedDriver = order.assignedDriver, orderDate = order.orderDate,
                 deliveryDate = order.deliveryDate, region = order.region,
+                cancellationReason = order.cancellationReason,
                 farmerName = order.farmerName, farmerPhone = order.farmerPhone, agentPhone = order.agentPhone,
                 createdAt = order.createdAt, updatedAt = order.updatedAt
             )

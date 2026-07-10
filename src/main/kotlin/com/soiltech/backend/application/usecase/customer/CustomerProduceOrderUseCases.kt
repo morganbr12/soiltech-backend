@@ -164,10 +164,12 @@ class DeliverOrderUseCase(private val orderRepository: CustomerProduceOrderRepos
 // ── Mapper ────────────────────────────────────────────────────────────────────
 
 private fun CustomerProduceOrder.toResponse() = ProduceOrderResponse(
-    id = id, orderCode = orderCode, customerId = customerId, customerName = customerName,
-    produce = produce, quantityKg = quantityKg, pricePerKg = pricePerKg, totalAmount = totalAmount,
-    status = status, paymentStatus = paymentStatus, assignedAgent = assignedAgent, assignedDriver = assignedDriver,
+    id = id, orderCode = orderCode, customerId = customerId, customerCode = customerCode,
+    customerName = customerName, produce = produce, quantityKg = quantityKg,
+    pricePerKg = pricePerKg, totalAmount = totalAmount, status = status,
+    paymentStatus = paymentStatus, assignedAgent = assignedAgent, assignedDriver = assignedDriver,
     orderDate = orderDate, deliveryDate = deliveryDate, region = region,
+    cancellationReason = cancellationReason,
     farmerName = farmerName, farmerPhone = farmerPhone, agentPhone = agentPhone,
     createdAt = createdAt, updatedAt = updatedAt
 )

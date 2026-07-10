@@ -1,9 +1,12 @@
 package com.soiltech.backend.interfaces.controller
 
 import com.soiltech.backend.application.dto.customer.*
+import com.soiltech.backend.application.dto.order.CustomerOrderListDto
 import com.soiltech.backend.application.usecase.customer.*
+import com.soiltech.backend.application.usecase.order.GetCustomerOrdersUseCase
 import com.soiltech.backend.domain.enum.CustomerStatus
 import com.soiltech.backend.domain.enum.CustomerTier
+import com.soiltech.backend.domain.enum.OrderStatus
 import com.soiltech.backend.interfaces.response.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -24,7 +27,8 @@ class AdminCustomerController(
     private val rejectCustomerUseCase: RejectCustomerUseCase,
     private val suspendCustomerUseCase: SuspendCustomerUseCase,
     private val activateCustomerUseCase: ActivateCustomerUseCase,
-    private val customerDashboardUseCase: CustomerDashboardUseCase
+    private val customerDashboardUseCase: CustomerDashboardUseCase,
+    private val getCustomerOrdersUseCase: GetCustomerOrdersUseCase
 ) {
 
     @GetMapping
@@ -76,6 +80,21 @@ class AdminCustomerController(
     fun getById(@PathVariable id: UUID): ResponseEntity<ApiResponse<AdminCustomerResponse>> {
         val data = getCustomerAdminUseCase.execute(id)
         return ResponseEntity.ok(ApiResponse.success(data))
+    }
+
+    @GetMapping("/{id}/orders")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('customers:view')")
+    fun getCustomerOrders(
+        @PathVariable id: UUID,
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "20") limit: Int,
+        @RequestParam(required = false) status: String?
+    ): ResponseEntity<ApiResponse<List<CustomerOrderListDto>>> {
+        val statuses = status?.takeIf { it.isNotBlank() }
+            ?.split(",")
+            ?.mapNotNull { runCatching { OrderStatus.valueOf(it.trim().uppercase()) }.getOrNull() }
+        val (items, meta) = getCustomerOrdersUseCase.execute(id, statuses, page, limit)
+        return ResponseEntity.ok(ApiResponse.success(items, meta = meta))
     }
 
     @PutMapping("/{id}")
