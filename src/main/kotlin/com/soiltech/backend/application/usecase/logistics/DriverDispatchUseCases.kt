@@ -96,8 +96,8 @@ class AdminDispatchDriverUseCase(
         val order = customerOrderRepository.findById(orderId)
             ?: throw NotFoundException("Order not found")
 
-        if (order.status != OrderStatus.AGENT_CONFIRMED) {
-            throw BadRequestException("Order must be AGENT_CONFIRMED before dispatching a driver. Current status: ${order.status.value}")
+        if (order.status != OrderStatus.CONFIRMED && order.status != OrderStatus.AGENT_CONFIRMED) {
+            throw BadRequestException("Order must be CONFIRMED before dispatching a driver. Current status: ${order.status.value}")
         }
 
         if (driverDispatchRepository.findByOrderId(orderId) != null) {

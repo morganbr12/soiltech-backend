@@ -8,7 +8,6 @@ import com.soiltech.backend.application.usecase.customer.ConfirmOrderUseCase
 import com.soiltech.backend.application.usecase.customer.CreateProduceOrderUseCase
 import com.soiltech.backend.application.usecase.customer.DeliverOrderUseCase
 import com.soiltech.backend.application.usecase.logistics.AdminDispatchDriverUseCase
-import com.soiltech.backend.application.usecase.logistics.AgentFieldConfirmUseCase
 import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.repository.AgentRepository
 import com.soiltech.backend.domain.repository.CustomerProduceOrderRepository
@@ -38,7 +37,6 @@ class CustomerOrderAdminController(
     private val confirmOrderUseCase: ConfirmOrderUseCase,
     private val cancelOrderUseCase: CancelOrderUseCase,
     private val deliverOrderUseCase: DeliverOrderUseCase,
-    private val agentFieldConfirmUseCase: AgentFieldConfirmUseCase,
     private val adminDispatchDriverUseCase: AdminDispatchDriverUseCase
 ) {
 
