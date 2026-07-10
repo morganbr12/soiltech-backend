@@ -163,6 +163,8 @@ class CreateProduceRecordUseCase(
                 id = UUID.randomUUID(),
                 categoryId = category.id,
                 produceListingId = listing.id,
+                farmerId = listing.farmerId,
+                agentId = listing.agentId,
                 name = productName,
                 description = description,
                 pricePerUnit = listing.pricePerKg,

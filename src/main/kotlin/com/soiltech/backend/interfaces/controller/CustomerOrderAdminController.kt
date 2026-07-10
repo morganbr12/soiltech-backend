@@ -11,6 +11,7 @@ import com.soiltech.backend.application.usecase.logistics.AdminDispatchDriverUse
 import com.soiltech.backend.application.usecase.logistics.AgentFieldConfirmUseCase
 import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.repository.CustomerProduceOrderRepository
+import com.soiltech.backend.domain.repository.CustomerProfileRepository
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
@@ -28,6 +29,7 @@ import java.util.UUID
 @RequestMapping("/customers/orders")
 class CustomerOrderAdminController(
     private val customerProduceOrderRepository: CustomerProduceOrderRepository,
+    private val customerProfileRepository: CustomerProfileRepository,
     private val createProduceOrderUseCase: CreateProduceOrderUseCase,
     private val confirmOrderUseCase: ConfirmOrderUseCase,
     private val cancelOrderUseCase: CancelOrderUseCase,
@@ -51,10 +53,20 @@ class CustomerOrderAdminController(
         val direction = if (sortOrder.equals("asc", ignoreCase = true)) Sort.Direction.ASC else Sort.Direction.DESC
         val pageable = PageRequest.of((page - 1).coerceAtLeast(0), limit, Sort.by(direction, "createdAt"))
         val result = customerProduceOrderRepository.findAll(produceStatus, null, null, customerId, null, pageable)
+        val customerIds = result.content.map { it.customerId }.distinct()
+        val customerMap = customerProfileRepository.findByIds(customerIds)
         val dtos = result.content.map { order ->
+            val profile = customerMap[order.customerId]
             ProduceOrderResponse(
                 id = order.id, orderCode = order.orderCode, customerId = order.customerId,
                 customerCode = order.customerCode, customerName = order.customerName,
+                customer = profile?.let {
+                    CustomerSummary(
+                        id = it.id, customerCode = it.customerCode, fullName = it.fullName,
+                        email = it.email, phone = it.phone, address = it.address,
+                        region = it.region, accountType = it.accountType, status = it.status
+                    )
+                },
                 produce = order.produce, quantityKg = order.quantityKg,
                 pricePerKg = order.pricePerKg, totalAmount = order.totalAmount, status = order.status,
                 paymentStatus = order.paymentStatus, assignedAgent = order.assignedAgent,

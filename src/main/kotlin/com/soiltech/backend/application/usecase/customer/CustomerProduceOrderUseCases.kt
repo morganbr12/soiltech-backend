@@ -20,7 +20,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
-class ListProduceOrdersUseCase(private val orderRepository: CustomerProduceOrderRepository) {
+class ListProduceOrdersUseCase(
+    private val orderRepository: CustomerProduceOrderRepository,
+    private val customerProfileRepository: CustomerProfileRepository
+) {
     fun execute(
         status: ProduceOrderStatus?,
         paymentStatus: ProducePaymentStatus?,
@@ -51,7 +54,13 @@ class ListProduceOrdersUseCase(private val orderRepository: CustomerProduceOrder
             unpaid = paymentCounts.getOrDefault(ProducePaymentStatus.UNPAID, 0L),
             totalValue = totalValue
         )
-        return Triple(resultPage.content.map { it.toResponse() }, summary, PaginationMeta.from(resultPage, page, limit))
+        val customerIds = resultPage.content.map { it.customerId }.distinct()
+        val customerMap = customerProfileRepository.findByIds(customerIds)
+        return Triple(
+            resultPage.content.map { it.toResponse(customerMap[it.customerId]) },
+            summary,
+            PaginationMeta.from(resultPage, page, limit)
+        )
     }
 }
 
@@ -163,9 +172,17 @@ class DeliverOrderUseCase(private val orderRepository: CustomerProduceOrderRepos
 
 // ── Mapper ────────────────────────────────────────────────────────────────────
 
-private fun CustomerProduceOrder.toResponse() = ProduceOrderResponse(
+private fun CustomerProduceOrder.toResponse(customer: com.soiltech.backend.domain.entity.CustomerProfile? = null) = ProduceOrderResponse(
     id = id, orderCode = orderCode, customerId = customerId, customerCode = customerCode,
-    customerName = customerName, produce = produce, quantityKg = quantityKg,
+    customerName = customerName,
+    customer = customer?.let {
+        CustomerSummary(
+            id = it.id, customerCode = it.customerCode, fullName = it.fullName,
+            email = it.email, phone = it.phone, address = it.address,
+            region = it.region, accountType = it.accountType, status = it.status
+        )
+    },
+    produce = produce, quantityKg = quantityKg,
     pricePerKg = pricePerKg, totalAmount = totalAmount, status = status,
     paymentStatus = paymentStatus, assignedAgent = assignedAgent, assignedDriver = assignedDriver,
     orderDate = orderDate, deliveryDate = deliveryDate, region = region,

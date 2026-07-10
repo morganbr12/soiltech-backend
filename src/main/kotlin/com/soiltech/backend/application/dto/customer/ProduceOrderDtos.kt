@@ -1,5 +1,7 @@
 package com.soiltech.backend.application.dto.customer
 
+import com.soiltech.backend.domain.enum.CustomerAccountType
+import com.soiltech.backend.domain.enum.CustomerStatus
 import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.enum.ProducePaymentStatus
 import jakarta.validation.constraints.DecimalMin
@@ -11,12 +13,25 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+data class CustomerSummary(
+    val id: UUID,
+    val customerCode: String?,
+    val fullName: String,
+    val email: String?,
+    val phone: String?,
+    val address: String?,
+    val region: String?,
+    val accountType: CustomerAccountType,
+    val status: CustomerStatus
+)
+
 data class ProduceOrderResponse(
     val id: UUID,
     val orderCode: String,
     val customerId: UUID,
     val customerCode: String,
     val customerName: String,
+    val customer: CustomerSummary?,
     val produce: String,
     val quantityKg: Double,
     val pricePerKg: BigDecimal,

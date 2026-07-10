@@ -10,6 +10,7 @@ import java.util.UUID
 
 interface CustomerProfileRepository {
     fun findById(id: UUID): CustomerProfile?
+    fun findByIds(ids: List<UUID>): Map<UUID, CustomerProfile>
     fun findByUserId(userId: UUID): CustomerProfile?
     fun save(profile: CustomerProfile): CustomerProfile
     fun update(profile: CustomerProfile): CustomerProfile

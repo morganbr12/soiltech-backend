@@ -28,6 +28,13 @@ class CustomerProfileRepositoryAdapter(
     override fun findById(id: UUID): CustomerProfile? =
         jpaRepository.findById(id).orElse(null)?.toDomain()
 
+    override fun findByIds(ids: List<UUID>): Map<UUID, CustomerProfile> {
+        if (ids.isEmpty()) return emptyMap()
+        return jpaRepository.findAllById(ids)
+            .filter { it.id != null }
+            .associate { it.id!! to it.toDomain() }
+    }
+
     override fun findByUserId(userId: UUID): CustomerProfile? =
         jpaRepository.findByUserId(userId)?.toDomain()
 

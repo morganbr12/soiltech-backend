@@ -52,6 +52,12 @@ class ProductJpaEntity(
     @Column(unique = true)
     var produceListingId: UUID? = null,
 
+    @Column
+    var farmerId: UUID? = null,
+
+    @Column
+    var agentId: UUID? = null,
+
     @Column(precision = 12, scale = 2)
     var originalPrice: BigDecimal? = null,
 
@@ -76,6 +82,8 @@ class ProductJpaEntity(
         id = id!!,
         categoryId = categoryId,
         produceListingId = produceListingId,
+        farmerId = farmerId,
+        agentId = agentId,
         name = name,
         description = description,
         pricePerUnit = pricePerUnit,
@@ -100,6 +108,8 @@ class ProductJpaEntity(
             id = product.id,
             categoryId = product.categoryId,
             produceListingId = product.produceListingId,
+            farmerId = product.farmerId,
+            agentId = product.agentId,
             name = product.name,
             description = product.description,
             pricePerUnit = product.pricePerUnit,
