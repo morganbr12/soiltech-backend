@@ -8,7 +8,9 @@ import com.soiltech.backend.domain.entity.OrderItem
 import com.soiltech.backend.domain.entity.OrderTimeline
 import com.soiltech.backend.domain.enum.NotificationType
 import com.soiltech.backend.domain.enum.OrderStatus
+import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
+import com.soiltech.backend.domain.repository.CustomerProduceOrderRepository
 import com.soiltech.backend.domain.repository.CustomerProfileRepository
 import com.soiltech.backend.domain.repository.ProduceListingRepository
 import com.soiltech.backend.domain.repository.ProductRepository
@@ -116,19 +118,47 @@ class PlaceOrderUseCase(
 
 @Service
 class ListOrdersUseCase(
-    private val customerOrderRepository: CustomerOrderRepository,
+    private val customerProduceOrderRepository: CustomerProduceOrderRepository,
     private val customerProfileRepository: CustomerProfileRepository
 ) {
     fun execute(userId: UUID, statuses: List<OrderStatus>?, page: Int, perPage: Int): Pair<List<CustomerOrderListDto>, PaginationMeta> {
         val customer = customerProfileRepository.findByUserId(userId)
             ?: throw NotFoundException("Customer profile not found")
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
-        val result = customerOrderRepository.findAll(customer.id, statuses, pageable)
+        val produceStatus = statuses?.firstOrNull()?.toProduceStatus()
+        val result = customerProduceOrderRepository.findAll(produceStatus, null, null, customer.id, null, pageable)
         val dtos = result.content.map { order ->
-            val items = customerOrderRepository.findItemsByOrderId(order.id)
-            order.toListDto(items.size)
+            CustomerOrderListDto(
+                id = order.id,
+                customerId = order.customerId,
+                customerName = order.customerName,
+                status = order.status.toOrderStatus(),
+                totalAmount = order.totalAmount,
+                deliveryAddress = order.region,
+                paymentType = null,
+                itemCount = 1,
+                createdAt = order.createdAt,
+                updatedAt = order.updatedAt
+            )
         }
         return dtos to PaginationMeta.from(result, page, perPage)
+    }
+
+    private fun OrderStatus.toProduceStatus(): ProduceOrderStatus? = when (this) {
+        OrderStatus.PENDING -> ProduceOrderStatus.PENDING
+        OrderStatus.CONFIRMED -> ProduceOrderStatus.CONFIRMED
+        OrderStatus.PROCESSING -> ProduceOrderStatus.PROCESSING
+        OrderStatus.DELIVERED -> ProduceOrderStatus.DELIVERED
+        OrderStatus.CANCELLED -> ProduceOrderStatus.CANCELLED
+        else -> null
+    }
+
+    private fun ProduceOrderStatus.toOrderStatus(): OrderStatus = when (this) {
+        ProduceOrderStatus.PENDING -> OrderStatus.PENDING
+        ProduceOrderStatus.CONFIRMED -> OrderStatus.CONFIRMED
+        ProduceOrderStatus.PROCESSING -> OrderStatus.PROCESSING
+        ProduceOrderStatus.DELIVERED -> OrderStatus.DELIVERED
+        ProduceOrderStatus.CANCELLED -> OrderStatus.CANCELLED
     }
 }
 

@@ -12,7 +12,9 @@ import com.soiltech.backend.application.usecase.logistics.AdminDispatchDriverUse
 import com.soiltech.backend.application.usecase.logistics.AgentFieldConfirmUseCase
 import com.soiltech.backend.application.usecase.order.UpdateOrderStatusUseCase
 import com.soiltech.backend.domain.enum.OrderStatus
+import com.soiltech.backend.domain.enum.ProduceOrderStatus
 import com.soiltech.backend.domain.repository.CustomerOrderRepository
+import com.soiltech.backend.domain.repository.CustomerProduceOrderRepository
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.interfaces.response.ApiResponse
 import com.soiltech.backend.interfaces.response.PaginationMeta
@@ -30,6 +32,7 @@ import java.util.UUID
 @RequestMapping("/customers/orders")
 class CustomerOrderAdminController(
     private val customerOrderRepository: CustomerOrderRepository,
+    private val customerProduceOrderRepository: CustomerProduceOrderRepository,
     private val createProduceOrderUseCase: CreateProduceOrderUseCase,
     private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
     private val agentFieldConfirmUseCase: AgentFieldConfirmUseCase,
@@ -44,16 +47,23 @@ class CustomerOrderAdminController(
         @RequestParam(required = false) status: String?,
         @RequestParam(required = false) customerId: UUID?,
         @RequestParam(name = "sortOrder", defaultValue = "desc") sortOrder: String
-    ): ResponseEntity<ApiResponse<List<CustomerOrderListDto>>> {
-        val statuses = status?.takeIf { it.isNotBlank() }?.let {
-            listOf(OrderStatus.fromValue(it))
+    ): ResponseEntity<ApiResponse<List<ProduceOrderResponse>>> {
+        val produceStatus = status?.takeIf { it.isNotBlank() }?.let {
+            runCatching { ProduceOrderStatus.fromValue(it) }.getOrNull()
         }
         val direction = if (sortOrder.equals("asc", ignoreCase = true)) Sort.Direction.ASC else Sort.Direction.DESC
         val pageable = PageRequest.of((page - 1).coerceAtLeast(0), limit, Sort.by(direction, "createdAt"))
-        val result = customerOrderRepository.findAllAdmin(customerId, statuses, pageable)
+        val result = customerProduceOrderRepository.findAll(produceStatus, null, null, customerId, null, pageable)
         val dtos = result.content.map { order ->
-            val items = customerOrderRepository.findItemsByOrderId(order.id)
-            order.toListDto(items.size)
+            ProduceOrderResponse(
+                id = order.id, orderCode = order.orderCode, customerId = order.customerId,
+                customerName = order.customerName, produce = order.produce, quantityKg = order.quantityKg,
+                pricePerKg = order.pricePerKg, totalAmount = order.totalAmount, status = order.status,
+                paymentStatus = order.paymentStatus, assignedAgent = order.assignedAgent,
+                assignedDriver = order.assignedDriver, orderDate = order.orderDate,
+                deliveryDate = order.deliveryDate, region = order.region,
+                createdAt = order.createdAt, updatedAt = order.updatedAt
+            )
         }
         return ResponseEntity.ok(ApiResponse.success(dtos, meta = PaginationMeta.from(result, page, limit)))
     }
