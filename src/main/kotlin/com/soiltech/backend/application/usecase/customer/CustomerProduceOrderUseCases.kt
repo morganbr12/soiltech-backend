@@ -22,7 +22,9 @@ import java.util.UUID
 @Service
 class ListProduceOrdersUseCase(
     private val orderRepository: CustomerProduceOrderRepository,
-    private val customerProfileRepository: CustomerProfileRepository
+    private val customerProfileRepository: CustomerProfileRepository,
+    private val farmerRepository: FarmerRepository,
+    private val agentRepository: AgentRepository
 ) {
     fun execute(
         status: ProduceOrderStatus?,
@@ -54,10 +56,15 @@ class ListProduceOrdersUseCase(
             unpaid = paymentCounts.getOrDefault(ProducePaymentStatus.UNPAID, 0L),
             totalValue = totalValue
         )
-        val customerIds = resultPage.content.map { it.customerId }.distinct()
+        val orders = resultPage.content
+        val customerIds = orders.map { it.customerId }.distinct()
+        val farmerIds = orders.mapNotNull { it.farmerId }.distinct()
+        val agentIds = orders.mapNotNull { it.agentId }.distinct()
         val customerMap = customerProfileRepository.findByIds(customerIds)
+        val farmerMap = farmerRepository.findByIds(farmerIds).associateBy { it.id }
+        val agentMap = agentRepository.findByIds(agentIds)
         return Triple(
-            resultPage.content.map { it.toResponse(customerMap[it.customerId]) },
+            orders.map { it.toResponse(customerMap[it.customerId], farmerMap[it.farmerId], agentMap[it.agentId]) },
             summary,
             PaginationMeta.from(resultPage, page, limit)
         )
@@ -95,6 +102,8 @@ class CreateProduceOrderUseCase(
                 customerId = customer.id,
                 customerCode = customer.customerCode ?: "",
                 customerName = customer.fullName,
+                farmerId = farmer?.id,
+                agentId = agent?.id,
                 produce = request.produce,
                 quantityKg = request.quantityKg,
                 pricePerKg = request.pricePerKg,
@@ -172,7 +181,11 @@ class DeliverOrderUseCase(private val orderRepository: CustomerProduceOrderRepos
 
 // ── Mapper ────────────────────────────────────────────────────────────────────
 
-private fun CustomerProduceOrder.toResponse(customer: com.soiltech.backend.domain.entity.CustomerProfile? = null) = ProduceOrderResponse(
+private fun CustomerProduceOrder.toResponse(
+    customer: com.soiltech.backend.domain.entity.CustomerProfile? = null,
+    farmer: com.soiltech.backend.domain.entity.Farmer? = null,
+    agent: com.soiltech.backend.domain.entity.Agent? = null
+) = ProduceOrderResponse(
     id = id, orderCode = orderCode, customerId = customerId, customerCode = customerCode,
     customerName = customerName,
     customer = customer?.let {
@@ -180,6 +193,23 @@ private fun CustomerProduceOrder.toResponse(customer: com.soiltech.backend.domai
             id = it.id, customerCode = it.customerCode, fullName = it.fullName,
             email = it.email, phone = it.phone, address = it.address,
             region = it.region, accountType = it.accountType, status = it.status
+        )
+    },
+    farmer = farmer?.let {
+        FarmerSummary(
+            id = it.id, farmerCode = it.farmerCode,
+            fullName = "${it.firstName} ${it.lastName}",
+            phone = it.phone, email = it.email,
+            region = it.region, district = it.district,
+            community = it.community, cropTypes = it.cropTypes
+        )
+    },
+    agent = agent?.let {
+        AgentSummary(
+            id = it.id, agentCode = it.agentCode,
+            fullName = "${it.firstName} ${it.lastName}",
+            phone = it.phone, email = it.email,
+            region = it.region, district = it.district
         )
     },
     produce = produce, quantityKg = quantityKg,

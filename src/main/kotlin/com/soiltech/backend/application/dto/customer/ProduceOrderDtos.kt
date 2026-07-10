@@ -13,6 +13,28 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
+data class FarmerSummary(
+    val id: UUID,
+    val farmerCode: String,
+    val fullName: String,
+    val phone: String,
+    val email: String?,
+    val region: String,
+    val district: String,
+    val community: String,
+    val cropTypes: List<String>
+)
+
+data class AgentSummary(
+    val id: UUID,
+    val agentCode: String,
+    val fullName: String,
+    val phone: String,
+    val email: String,
+    val region: String,
+    val district: String
+)
+
 data class CustomerSummary(
     val id: UUID,
     val customerCode: String?,
@@ -32,6 +54,8 @@ data class ProduceOrderResponse(
     val customerCode: String,
     val customerName: String,
     val customer: CustomerSummary?,
+    val farmer: FarmerSummary?,
+    val agent: AgentSummary?,
     val produce: String,
     val quantityKg: Double,
     val pricePerKg: BigDecimal,

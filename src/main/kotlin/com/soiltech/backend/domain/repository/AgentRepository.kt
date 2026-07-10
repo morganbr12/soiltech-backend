@@ -10,6 +10,7 @@ import java.util.UUID
 
 interface AgentRepository {
     fun findById(id: UUID): Agent?
+    fun findByIds(ids: List<UUID>): Map<UUID, Agent>
     fun findAll(status: AgentStatus?, region: String?, search: String?, pageable: Pageable): Page<Agent>
     fun countByStatus(): Map<AgentStatus, Long>
     fun findMetricsByAgentIds(ids: List<UUID>): Map<UUID, AgentMetrics>

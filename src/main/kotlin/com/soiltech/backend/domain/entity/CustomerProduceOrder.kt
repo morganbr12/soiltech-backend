@@ -13,6 +13,8 @@ data class CustomerProduceOrder(
     val customerId: UUID,
     val customerCode: String,
     val customerName: String,
+    val farmerId: UUID? = null,
+    val agentId: UUID? = null,
     val produce: String,
     val quantityKg: Double,
     val pricePerKg: BigDecimal,

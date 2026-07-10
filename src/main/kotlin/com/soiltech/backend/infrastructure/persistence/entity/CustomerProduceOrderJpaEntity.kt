@@ -33,6 +33,12 @@ class CustomerProduceOrderJpaEntity(
     @Column(nullable = false, length = 255)
     var customerName: String,
 
+    @Column
+    var farmerId: UUID? = null,
+
+    @Column
+    var agentId: UUID? = null,
+
     @Column(nullable = false, length = 100)
     var produce: String,
 
@@ -87,6 +93,8 @@ class CustomerProduceOrderJpaEntity(
         customerId = customerId,
         customerCode = customerCode,
         customerName = customerName,
+        farmerId = farmerId,
+        agentId = agentId,
         produce = produce,
         quantityKg = quantityKg,
         pricePerKg = pricePerKg,
@@ -113,6 +121,8 @@ class CustomerProduceOrderJpaEntity(
             customerId = o.customerId,
             customerCode = o.customerCode,
             customerName = o.customerName,
+            farmerId = o.farmerId,
+            agentId = o.agentId,
             produce = o.produce,
             quantityKg = o.quantityKg,
             pricePerKg = o.pricePerKg,

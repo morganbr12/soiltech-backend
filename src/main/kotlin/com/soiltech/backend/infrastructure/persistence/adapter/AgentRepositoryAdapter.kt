@@ -27,6 +27,13 @@ class AgentRepositoryAdapter(
     override fun findById(id: UUID): Agent? =
         jpaRepository.findById(id).orElse(null)?.toDomain()
 
+    override fun findByIds(ids: List<UUID>): Map<UUID, Agent> {
+        if (ids.isEmpty()) return emptyMap()
+        return jpaRepository.findAllById(ids)
+            .filter { it.id != null }
+            .associate { it.id!! to it.toDomain() }
+    }
+
     override fun findAll(status: AgentStatus?, region: String?, search: String?, pageable: Pageable): Page<Agent> =
         jpaRepository.findAll(buildSpec(status, region, search), pageable).map { it.toDomain() }
 
