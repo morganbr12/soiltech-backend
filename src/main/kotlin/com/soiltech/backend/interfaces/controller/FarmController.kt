@@ -28,8 +28,19 @@ class FarmController(
     private val cloudinaryService: CloudinaryService
 ) {
 
-    @PostMapping(consumes = ["multipart/form-data", "application/json", "application/x-www-form-urlencoded"])
+    @PostMapping(consumes = ["application/json"])
     fun create(
+        @PathVariable farmerId: UUID,
+        @Valid @RequestBody request: CreateFarmRequest,
+        @AuthenticationPrincipal principal: UserPrincipal
+    ): ResponseEntity<ApiResponse<FarmDto>> {
+        val data = createFarmUseCase.execute(farmerId, request, principal.id, emptyList())
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.created(data, "Farm created successfully"))
+    }
+
+    @PostMapping(consumes = ["multipart/form-data"])
+    fun createWithPhotos(
         @PathVariable farmerId: UUID,
         @RequestParam name: String,
         @RequestParam(required = false) sizeHectares: Double?,
