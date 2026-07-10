@@ -10,6 +10,7 @@ import com.soiltech.backend.infrastructure.persistence.jpa.ProductJpaRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Component
@@ -31,6 +32,9 @@ class ProductRepositoryAdapter(
 
     override fun findFeatured(pageable: Pageable): Page<Product> =
         jpaRepository.findByIsFeaturedTrueAndIsAvailableTrue(pageable).map { it.toDomain() }
+
+    @Transactional
+    override fun backfillFarmerAgentIds(): Int = jpaRepository.backfillFarmerAgentIds()
 
     override fun save(product: Product): Product {
         val existing = jpaRepository.findById(product.id).orElse(null)
@@ -54,6 +58,8 @@ class ProductRepositoryAdapter(
                 averageRating = product.averageRating
                 reviewCount = product.reviewCount
                 produceListingId = product.produceListingId
+                farmerId = product.farmerId
+                agentId = product.agentId
             }
             jpaRepository.save(existing).toDomain()
         }

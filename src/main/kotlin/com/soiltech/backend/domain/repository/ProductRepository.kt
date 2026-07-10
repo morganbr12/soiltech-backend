@@ -12,4 +12,5 @@ interface ProductRepository {
     fun findDeals(pageable: Pageable): Page<Product>
     fun findFeatured(pageable: Pageable): Page<Product>
     fun save(product: Product): Product
+    fun backfillFarmerAgentIds(): Int
 }

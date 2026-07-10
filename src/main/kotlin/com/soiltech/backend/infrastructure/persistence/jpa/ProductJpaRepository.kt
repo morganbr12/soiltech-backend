@@ -4,6 +4,7 @@ import com.soiltech.backend.infrastructure.persistence.entity.ProductJpaEntity
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -32,4 +33,15 @@ interface ProductJpaRepository : JpaRepository<ProductJpaEntity, UUID> {
     fun findByIsFeaturedTrueAndIsAvailableTrue(pageable: Pageable): Page<ProductJpaEntity>
 
     fun findByProduceListingId(produceListingId: UUID): ProductJpaEntity?
+
+    @Modifying
+    @Query(value = """
+        UPDATE products p
+        SET farmer_id = pl.farmer_id,
+            agent_id  = pl.agent_id
+        FROM produce_listings pl
+        WHERE p.produce_listing_id = pl.id
+          AND p.farmer_id IS NULL
+    """, nativeQuery = true)
+    fun backfillFarmerAgentIds(): Int
 }

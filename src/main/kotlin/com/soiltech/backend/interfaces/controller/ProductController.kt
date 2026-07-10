@@ -11,6 +11,7 @@ import com.soiltech.backend.application.usecase.product.ListFeaturedProductsUseC
 import com.soiltech.backend.application.usecase.product.ListProductCategoriesUseCase
 import com.soiltech.backend.application.usecase.product.ListProductReviewsUseCase
 import com.soiltech.backend.application.usecase.product.ListProductsUseCase
+import com.soiltech.backend.domain.repository.ProductRepository
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.interfaces.response.ApiResponse
 import jakarta.validation.Valid
@@ -29,7 +30,8 @@ class ProductController(
     private val listFeaturedProductsUseCase: ListFeaturedProductsUseCase,
     private val getProductUseCase: GetProductUseCase,
     private val listProductReviewsUseCase: ListProductReviewsUseCase,
-    private val createProductReviewUseCase: CreateProductReviewUseCase
+    private val createProductReviewUseCase: CreateProductReviewUseCase,
+    private val productRepository: ProductRepository
 ) {
 
     @GetMapping("/deals")
@@ -75,6 +77,13 @@ class ProductController(
     ): ResponseEntity<ApiResponse<List<ProductReviewDto>>> {
         val (reviews, meta) = listProductReviewsUseCase.execute(id, page, perPage)
         return ResponseEntity.ok(ApiResponse.success(reviews, meta = meta))
+    }
+
+    @PostMapping("/backfill-farmer-agent")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun backfillFarmerAgent(): ResponseEntity<ApiResponse<Map<String, Int>>> {
+        val updated = productRepository.backfillFarmerAgentIds()
+        return ResponseEntity.ok(ApiResponse.success(mapOf("updated" to updated), "Backfill complete"))
     }
 
     @PostMapping("/{id}/reviews")
