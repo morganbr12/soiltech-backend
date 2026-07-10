@@ -43,8 +43,7 @@ data class ProduceOrderSummaryResponse(
 )
 
 data class CreateProduceOrderRequest(
-    @field:NotNull(message = "Customer ID is required")
-    val customerId: UUID,
+    val customerId: UUID? = null,
 
     @field:NotBlank(message = "Produce is required")
     val produce: String,
@@ -56,10 +55,11 @@ data class CreateProduceOrderRequest(
     @field:DecimalMin("0.01", message = "Price must be positive")
     val pricePerKg: BigDecimal,
 
-    @field:NotBlank(message = "Region is required")
-    val region: String,
+    val region: String? = null,
 
-    val assignedAgent: String? = null
+    val assignedAgent: String? = null,
+
+    val paymentType: String? = null
 )
 
 data class CancelOrderRequest(val reason: String? = null)

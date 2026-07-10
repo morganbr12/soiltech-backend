@@ -59,9 +59,14 @@ class CreateProduceOrderUseCase(
     private val customerProfileRepository: CustomerProfileRepository
 ) {
     @Transactional
-    fun execute(request: CreateProduceOrderRequest): ProduceOrderResponse {
-        val customer = customerProfileRepository.findById(request.customerId)
-            ?: throw NotFoundException("Customer not found with id: ${request.customerId}")
+    fun execute(request: CreateProduceOrderRequest, userId: UUID? = null): ProduceOrderResponse {
+        val customer = when {
+            request.customerId != null -> customerProfileRepository.findById(request.customerId)
+                ?: throw NotFoundException("Customer not found with id: ${request.customerId}")
+            userId != null -> customerProfileRepository.findByUserId(userId)
+                ?: throw NotFoundException("Customer profile not found")
+            else -> throw com.soiltech.backend.interfaces.exception.BadRequestException("customer_id is required")
+        }
 
         val now = LocalDateTime.now()
         val orderCode = generateUniqueCode(orderRepository)
@@ -82,7 +87,7 @@ class CreateProduceOrderUseCase(
                 paymentStatus = ProducePaymentStatus.UNPAID,
                 assignedAgent = request.assignedAgent,
                 assignedDriver = null,
-                region = request.region,
+                region = request.region ?: "",
                 cancellationReason = null,
                 orderDate = LocalDate.now(),
                 deliveryDate = null,
