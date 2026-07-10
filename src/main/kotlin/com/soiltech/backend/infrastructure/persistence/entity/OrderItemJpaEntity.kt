@@ -20,6 +20,12 @@ class OrderItemJpaEntity(
     @Column(nullable = false)
     val productId: UUID,
 
+    @Column
+    val farmerId: UUID? = null,
+
+    @Column
+    val agentId: UUID? = null,
+
     @Column(length = 255)
     val productName: String? = null,
 
@@ -42,6 +48,8 @@ class OrderItemJpaEntity(
         id = id!!,
         orderId = orderId,
         productId = productId,
+        farmerId = farmerId,
+        agentId = agentId,
         productName = productName,
         agentName = agentName,
         region = region,
@@ -55,6 +63,8 @@ class OrderItemJpaEntity(
             id = item.id,
             orderId = item.orderId,
             productId = item.productId,
+            farmerId = item.farmerId,
+            agentId = item.agentId,
             productName = item.productName,
             agentName = item.agentName,
             region = item.region,
