@@ -1,0 +1,44 @@
+databases:
+  - name: soiltech-db
+    databaseName: soiltech
+    user: soiltech
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: soiltech-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /v1/actuator/health
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: soiltech-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: soiltech-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: soiltech-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: soiltech-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: soiltech-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
