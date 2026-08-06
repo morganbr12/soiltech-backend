@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
+@org.springframework.core.annotation.Order(1)
 @Component
 class AdminRbacSeeder(
     private val adminRoleJpaRepository: AdminRoleJpaRepository
