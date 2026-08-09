@@ -29,13 +29,14 @@ class CreateFarmUseCase(
 ) {
     @Transactional
     fun execute(farmerId: UUID, request: CreateFarmRequest, userId: UUID, photoUrls: List<String> = emptyList()): FarmDto {
-        val profile = agentProfileRepository.findByUserId(userId)
-            ?: throw NotFoundException("Agent profile not found")
-        val agent = agentRepository.findByAgentCode(profile.agentCode)
-            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(farmerId)
             ?: throw NotFoundException("Farmer not found")
-        if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        val profile = agentProfileRepository.findByUserId(userId)
+        if (profile != null) {
+            val agent = agentRepository.findByAgentCode(profile.agentCode)
+                ?: throw NotFoundException("Agent record not found")
+            if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        }
 
         val now = LocalDateTime.now()
         val farm = farmRepository.save(
@@ -67,13 +68,14 @@ class ListFarmsUseCase(
     private val agentRepository: AgentRepository
 ) {
     fun execute(farmerId: UUID, userId: UUID, page: Int, perPage: Int): Pair<List<FarmDto>, PaginationMeta> {
-        val profile = agentProfileRepository.findByUserId(userId)
-            ?: throw NotFoundException("Agent profile not found")
-        val agent = agentRepository.findByAgentCode(profile.agentCode)
-            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(farmerId)
             ?: throw NotFoundException("Farmer not found")
-        if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        val profile = agentProfileRepository.findByUserId(userId)
+        if (profile != null) {
+            val agent = agentRepository.findByAgentCode(profile.agentCode)
+                ?: throw NotFoundException("Agent record not found")
+            if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        }
 
         val pageable = PageRequest.of(page - 1, perPage, Sort.by("createdAt").descending())
         val result = farmRepository.findByFarmerId(farmerId, pageable)
@@ -90,13 +92,14 @@ class UpdateFarmUseCase(
 ) {
     @Transactional
     fun execute(farmerId: UUID, farmId: UUID, request: UpdateFarmRequest, userId: UUID): FarmDto {
-        val profile = agentProfileRepository.findByUserId(userId)
-            ?: throw NotFoundException("Agent profile not found")
-        val agent = agentRepository.findByAgentCode(profile.agentCode)
-            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(farmerId)
             ?: throw NotFoundException("Farmer not found")
-        if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        val profile = agentProfileRepository.findByUserId(userId)
+        if (profile != null) {
+            val agent = agentRepository.findByAgentCode(profile.agentCode)
+                ?: throw NotFoundException("Agent record not found")
+            if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        }
 
         val farm = farmRepository.findById(farmId)
             ?: throw NotFoundException("Farm not found")
