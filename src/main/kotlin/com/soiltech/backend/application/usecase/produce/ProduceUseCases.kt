@@ -46,13 +46,18 @@ class CreateProduceRecordUseCase(
 ) {
     @Transactional
     fun execute(request: CreateProduceRecordRequest, userId: UUID, photoUrls: List<String> = emptyList()): ProduceRecordDto {
-        val profile = agentProfileRepository.findByUserId(userId)
-            ?: throw NotFoundException("Agent profile not found")
-        val agent = agentRepository.findByAgentCode(profile.agentCode)
-            ?: throw NotFoundException("Agent record not found")
         val farmer = farmerRepository.findById(request.farmerId)
             ?: throw NotFoundException("Farmer not found")
-        if (farmer.agentId != agent.id) throw ForbiddenException("Access denied")
+        val profile = agentProfileRepository.findByUserId(userId)
+        val agent = if (profile != null) {
+            val a = agentRepository.findByAgentCode(profile.agentCode)
+                ?: throw NotFoundException("Agent record not found")
+            if (farmer.agentId != a.id) throw ForbiddenException("Access denied")
+            a
+        } else {
+            agentRepository.findById(farmer.agentId)
+                ?: throw NotFoundException("Agent record not found")
+        }
 
         val now = LocalDateTime.now()
         val totalAmount = request.quantityKg.multiply(request.pricePerKg)
