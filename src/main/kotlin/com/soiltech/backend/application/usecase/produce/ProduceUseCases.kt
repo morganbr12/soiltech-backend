@@ -23,6 +23,7 @@ import com.soiltech.backend.domain.repository.ProductRepository
 import com.soiltech.backend.interfaces.exception.ForbiddenException
 import com.soiltech.backend.interfaces.exception.NotFoundException
 import com.soiltech.backend.interfaces.response.PaginationMeta
+import com.soiltech.backend.infrastructure.service.WikipediaImageService
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -42,7 +43,8 @@ class CreateProduceRecordUseCase(
     private val productRepository: ProductRepository,
     private val productCategoryRepository: ProductCategoryRepository,
     private val eventPublisher: ApplicationEventPublisher,
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
+    private val wikipediaImageService: WikipediaImageService
 ) {
     @Transactional
     fun execute(request: CreateProduceRecordRequest, userId: UUID, photoUrls: List<String> = emptyList()): ProduceRecordDto {
@@ -176,7 +178,8 @@ class CreateProduceRecordUseCase(
                 unit = "kg",
                 stockQuantity = listing.availableQuantityKg.toInt(),
                 isAvailable = listing.status == ProduceListingStatus.AVAILABLE,
-                imageUrl = listing.photos.firstOrNull(),
+                imageUrl = listing.photos.firstOrNull()
+                    ?: wikipediaImageService.fetchThumbnailUrl(listing.cropType),
                 isOnDeal = false,
                 isFeatured = false,
                 originalPrice = null,
