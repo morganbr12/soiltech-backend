@@ -26,6 +26,10 @@ services:
       DB_USERNAME: soiltech
       DB_PASSWORD: soiltech
       JWT_SECRET: 404D635166546A576E5A7234753778214125442A472D4B614E645267556B5870
+      SUPER_ADMIN_EMAIL: admin@soiltech.com
+      SUPER_ADMIN_PASSWORD: Admin@1234
+      SUPER_ADMIN_PHONE: "0200000000"
+      SUPER_ADMIN_FULL_NAME: Super Admin
     depends_on:
       postgres:
         condition: service_healthy
