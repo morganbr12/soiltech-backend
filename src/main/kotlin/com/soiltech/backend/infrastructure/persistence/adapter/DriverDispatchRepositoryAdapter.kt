@@ -33,4 +33,9 @@ class DriverDispatchRepositoryAdapter(
         entity.status = status
         return jpaRepository.save(entity).toDomain()
     }
+
+    override fun findActive(): List<DriverDispatch> =
+        jpaRepository.findByStatusIn(
+            listOf(DispatchStatus.PENDING, DispatchStatus.EN_ROUTE, DispatchStatus.PICKED_UP)
+        ).map { it.toDomain() }
 }

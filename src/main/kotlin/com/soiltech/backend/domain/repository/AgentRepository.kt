@@ -23,4 +23,5 @@ interface AgentRepository {
     fun existsByAgentCode(code: String): Boolean
     fun findByAgentCode(agentCode: String): Agent?
     fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long
+    fun findAllWithLocation(): List<Agent>
 }

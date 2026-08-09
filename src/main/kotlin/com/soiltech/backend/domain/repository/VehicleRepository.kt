@@ -12,6 +12,7 @@ interface VehicleRepository {
     fun findByCarPlateNumber(plateNumber: String): Vehicle?
     fun findAll(status: VehicleStatus?, region: String?, vehicleType: String?, search: String?, pageable: Pageable): Page<Vehicle>
     fun delete(id: UUID)
+    fun findAllVehicles(): List<Vehicle>
     fun countByStatus(status: VehicleStatus): Long
     fun countAll(): Long
 }

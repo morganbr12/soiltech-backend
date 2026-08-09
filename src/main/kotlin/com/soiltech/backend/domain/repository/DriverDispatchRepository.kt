@@ -12,4 +12,5 @@ interface DriverDispatchRepository {
     fun findByOrderId(orderId: UUID): DriverDispatch?
     fun findAll(status: DispatchStatus?, pageable: Pageable): Page<DriverDispatch>
     fun updateStatus(id: UUID, status: DispatchStatus): DriverDispatch
+    fun findActive(): List<DriverDispatch>
 }

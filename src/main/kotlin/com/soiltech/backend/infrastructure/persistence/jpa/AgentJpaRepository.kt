@@ -37,4 +37,7 @@ interface AgentJpaRepository : JpaRepository<AgentJpaEntity, UUID>, JpaSpecifica
     fun findByAgentCode(agentCode: String): AgentJpaEntity?
 
     fun countByCreatedAtBetween(from: java.time.LocalDateTime, to: java.time.LocalDateTime): Long
+
+    @Query("SELECT a FROM AgentJpaEntity a WHERE a.latitude IS NOT NULL AND a.longitude IS NOT NULL")
+    fun findAllWithLocation(): List<AgentJpaEntity>
 }

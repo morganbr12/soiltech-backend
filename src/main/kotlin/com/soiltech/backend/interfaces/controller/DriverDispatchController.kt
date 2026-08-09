@@ -2,8 +2,10 @@ package com.soiltech.backend.interfaces.controller
 
 import com.soiltech.backend.application.dto.logistics.DriverDispatchDto
 import com.soiltech.backend.application.dto.logistics.UpdateDispatchStatusRequest
+import com.soiltech.backend.application.dto.tracking.ActiveDispatchDto
 import com.soiltech.backend.application.usecase.logistics.ListDriverDispatchesUseCase
 import com.soiltech.backend.application.usecase.logistics.UpdateDispatchStatusUseCase
+import com.soiltech.backend.application.usecase.tracking.GetActiveDispatchesUseCase
 import com.soiltech.backend.domain.enum.DispatchStatus
 import com.soiltech.backend.infrastructure.security.UserPrincipal
 import com.soiltech.backend.interfaces.response.ApiResponse
@@ -19,7 +21,8 @@ import java.util.UUID
 @PreAuthorize("hasRole('ADMIN')")
 class DriverDispatchController(
     private val listDriverDispatchesUseCase: ListDriverDispatchesUseCase,
-    private val updateDispatchStatusUseCase: UpdateDispatchStatusUseCase
+    private val updateDispatchStatusUseCase: UpdateDispatchStatusUseCase,
+    private val getActiveDispatchesUseCase: GetActiveDispatchesUseCase
 ) {
 
     @GetMapping
@@ -32,6 +35,12 @@ class DriverDispatchController(
             ?.let { runCatching { DispatchStatus.fromValue(it) }.getOrNull() }
         val (data, meta) = listDriverDispatchesUseCase.execute(statusEnum, page, limit)
         return ResponseEntity.ok(ApiResponse.success(data, meta = meta))
+    }
+
+    @GetMapping("/active")
+    fun getActive(): ResponseEntity<ApiResponse<List<ActiveDispatchDto>>> {
+        val data = getActiveDispatchesUseCase.execute()
+        return ResponseEntity.ok(ApiResponse.success(data))
     }
 
     @PatchMapping("/{id}/status")

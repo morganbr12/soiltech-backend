@@ -183,4 +183,7 @@ class AgentRepositoryAdapter(
 
     override fun countCreatedBetween(from: LocalDateTime, to: LocalDateTime): Long =
         jpaRepository.countByCreatedAtBetween(from, to)
+
+    override fun findAllWithLocation(): List<Agent> =
+        jpaRepository.findAllWithLocation().map { it.toDomain() }
 }

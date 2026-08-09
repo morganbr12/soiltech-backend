@@ -24,4 +24,7 @@ interface DriverDispatchJpaRepository : JpaRepository<DriverDispatchJpaEntity, U
         @Param("status") status: DispatchStatus?,
         pageable: Pageable
     ): Page<DriverDispatchJpaEntity>
+
+    @Query("SELECT d FROM DriverDispatchJpaEntity d WHERE d.status IN :statuses ORDER BY d.createdAt DESC")
+    fun findByStatusIn(@Param("statuses") statuses: List<DispatchStatus>): List<DriverDispatchJpaEntity>
 }

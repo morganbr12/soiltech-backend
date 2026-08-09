@@ -42,6 +42,9 @@ class VehicleRepositoryAdapter(
     override fun countByStatus(status: VehicleStatus): Long =
         jpaRepository.countByStatus(status)
 
+    override fun findAllVehicles(): List<Vehicle> =
+        jpaRepository.findAll().map { it.toDomain() }
+
     override fun countAll(): Long =
         jpaRepository.count()
 }
