@@ -1,6 +1,9 @@
 package com.soiltech.backend.infrastructure.service
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.net.URLEncoder
@@ -11,6 +14,9 @@ class WikipediaImageService {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val rest = RestTemplate()
+    private val headers = HttpHeaders().apply {
+        set(HttpHeaders.USER_AGENT, "SoilTechLBC/1.0 (soiltech-backend; contact@soiltechlbc.com)")
+    }
 
     fun fetchThumbnailUrl(cropName: String, widthPx: Int = 400): String? {
         return try {
@@ -19,7 +25,8 @@ class WikipediaImageService {
                 "?action=query&titles=$encoded&prop=pageimages" +
                 "&pithumbsize=$widthPx&format=json&redirects=1"
 
-            val response = rest.getForObject(url, Map::class.java) ?: return null
+            val response = rest.exchange(url, HttpMethod.GET, HttpEntity<Unit>(headers), Map::class.java)
+                .body ?: return null
 
             @Suppress("UNCHECKED_CAST")
             val pages = (response["query"] as? Map<String, Any>)
