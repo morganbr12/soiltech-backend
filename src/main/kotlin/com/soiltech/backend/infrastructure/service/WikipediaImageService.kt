@@ -37,7 +37,7 @@ class WikipediaImageService {
                 ?.let { it as? Map<String, Any> }
                 ?.get("thumbnail")
                 ?.let { it as? Map<String, Any> }
-                ?.get("source") as? String
+                ?.get("source").let { (it as? String)?.takeIf { s -> s.isNotBlank() } }
         } catch (e: Exception) {
             log.warn("Wikipedia image fetch failed for '{}': {}", cropName, e.message)
             null

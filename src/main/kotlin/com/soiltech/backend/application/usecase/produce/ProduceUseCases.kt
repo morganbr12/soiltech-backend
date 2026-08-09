@@ -178,7 +178,7 @@ class CreateProduceRecordUseCase(
                 unit = "kg",
                 stockQuantity = listing.availableQuantityKg.toInt(),
                 isAvailable = listing.status == ProduceListingStatus.AVAILABLE,
-                imageUrl = listing.photos.firstOrNull()
+                imageUrl = listing.photos.firstOrNull { it.isNotBlank() }
                     ?: wikipediaImageService.fetchThumbnailUrl(listing.cropType),
                 isOnDeal = false,
                 isFeatured = false,
