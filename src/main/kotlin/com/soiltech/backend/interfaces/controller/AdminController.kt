@@ -12,6 +12,8 @@ import com.soiltech.backend.application.usecase.admin.GetAdminRoleUseCase
 import com.soiltech.backend.application.usecase.admin.ListAdminRolesUseCase
 import com.soiltech.backend.application.usecase.admin.ListAdminUsersUseCase
 import com.soiltech.backend.infrastructure.security.UserPrincipal
+import com.soiltech.backend.infrastructure.service.SeedService
+import com.soiltech.backend.infrastructure.service.SeedResult
 import com.soiltech.backend.interfaces.response.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -29,7 +31,8 @@ class AdminController(
     private val getAdminRoleUseCase: GetAdminRoleUseCase,
     private val listAdminUsersUseCase: ListAdminUsersUseCase,
     private val assignAdminRoleUseCase: AssignAdminRoleUseCase,
-    private val getAdminProfileUseCase: GetAdminProfileUseCase
+    private val getAdminProfileUseCase: GetAdminProfileUseCase,
+    private val seedService: SeedService
 ) {
 
     // ── Profile ─────────────────────────────────────────────────────────────
@@ -86,5 +89,17 @@ class AdminController(
     ): ResponseEntity<ApiResponse<AdminProfileDto>> {
         val data = assignAdminRoleUseCase.execute(userId, request)
         return ResponseEntity.ok(ApiResponse.success(data, "Role assigned successfully"))
+    }
+
+    // ── Seed ────────────────────────────────────────────────────────────────
+
+    @PostMapping("/seed/hierarchy")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun seedHierarchy(): ResponseEntity<ApiResponse<SeedResult>> {
+        val result = seedService.seedHierarchy()
+        val msg = "Seeded — agents:${result.agents} farmers:${result.farmers} " +
+            "farms:${result.farms} produce:${result.produceRecords} " +
+            "listings:${result.listings} products:${result.products}"
+        return ResponseEntity.ok(ApiResponse.success(result, msg))
     }
 }
