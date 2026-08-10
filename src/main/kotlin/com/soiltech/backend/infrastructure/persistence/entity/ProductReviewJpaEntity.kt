@@ -8,8 +8,8 @@ import java.util.UUID
 @Table(
     name = "product_reviews",
     indexes = [
-        Index(name = "idx_reviews_product_id", columnList = "productId"),
-        Index(name = "idx_reviews_customer_id", columnList = "customerId")
+        Index(name = "idx_product_reviews_product_id", columnList = "productId"),
+        Index(name = "idx_product_reviews_customer_id", columnList = "customerId")
     ]
 )
 class ProductReviewJpaEntity(
