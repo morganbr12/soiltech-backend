@@ -15,4 +15,9 @@ FROM eclipse-temurin:22-jre
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", \
+  "-XX:MaxRAMPercentage=65.0", \
+  "-XX:MaxMetaspaceSize=96m", \
+  "-XX:+UseSerialGC", \
+  "-Xss256k", \
+  "-jar", "app.jar"]

@@ -45,7 +45,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     // Cloudinary
-    implementation("com.cloudinary:cloudinary-http45:1.38.0")
+    implementation("com.cloudinary:cloudinary-http45:1.36.0")
 
     // Dev
     developmentOnly("org.springframework.boot:spring-boot-devtools")

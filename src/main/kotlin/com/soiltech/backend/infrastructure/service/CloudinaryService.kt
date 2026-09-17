@@ -1,7 +1,6 @@
 package com.soiltech.backend.infrastructure.service
 
 import com.cloudinary.Cloudinary
-import com.cloudinary.utils.ObjectUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
@@ -13,20 +12,20 @@ class CloudinaryService(
     @Value("\${cloudinary.api-secret}") apiSecret: String
 ) {
     private val cloudinary = Cloudinary(
-        ObjectUtils.asMap(
-            "cloud_name", cloudName,
-            "api_key", apiKey,
-            "api_secret", apiSecret,
-            "secure", true
+        mapOf(
+            "cloud_name" to cloudName,
+            "api_key" to apiKey,
+            "api_secret" to apiSecret,
+            "secure" to true
         )
     )
 
     fun uploadImage(file: MultipartFile, folder: String): String {
         val result = cloudinary.uploader().upload(
             file.bytes,
-            ObjectUtils.asMap(
-                "folder", folder,
-                "resource_type", "image"
+            mapOf(
+                "folder" to folder,
+                "resource_type" to "image"
             )
         )
         return result["secure_url"] as String
